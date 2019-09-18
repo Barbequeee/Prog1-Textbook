@@ -1,0 +1,182 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Berners-Lee!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+		<title>Olvasónapló</title>
+		<para>
+			A "Helló, Berners-Lee!" c. fejezetben az alábbi könyveket dolgozzuk
+			fel. A fő szálunk egy Java és C++ összehasonlítás lesz, amit akár
+			rövidre zárhatnánk annyival, hogy a két nyelvben más a
+			memóriakezelés, azonban be kell látnunk, hogy a különbség nem
+			csak ennyi.
+		</para>
+        <itemizedlist>
+            <listitem>
+				<para>C++: Benedek Zoltán, Levendovszky Tihamér
+					Szoftverfejlesztés C++ nyelven </para>
+            </listitem>
+            <listitem>
+				<para>Java: Nyékyné Dr. Gaizler Judit et al. Java 2 útikalauz
+					programozóknak 5.0 I-II. </para>
+            </listitem>
+            <listitem>
+				<para>Python: Forstner Bertalan, Ekler Péter, Kelényi Imre:
+					Bevezetés a mobilprogramozásba. </para>
+                <para>
+					Gyors prototípus-fejlesztés Python és Java nyelven (35-51
+					oldal)
+                </para>
+            </listitem>
+        </itemizedlist>
+	</section>
+
+        <section>
+		<title>Java VS C++</title>
+        <para>
+          A Java nyelv nagyon hasonlít a C és a C++ nyelvekhez, hiszen szintaxisa ezen nyelvekből származtatható.
+          Egy alapvető különbség a Java és a C++ nyelvek között már a fordítás során előjön.
+          Míg a C++ egy natív nyelv (azaz fordítás sorás egy az egybe gépi kódot állít elő),
+          addig a Java egy interpreteres nyelv, azaz a fordítás során egy bájtkódot (Javabytecode) állít elő.
+        </para>
+        <para> 
+          Ez a Javabytecode a Java Virtual Machine számára értelmezhető kód. Bármilyen rendszeren amin rajta van a 
+          JVM, az előbb említett bájtkód értelmezhető lesz.
+          Egyszerre előnye és hátránya is ez a Java-nak. Mivel a bájtkód előállítása majd annak tovább fordítása 
+          időigényes, ezért ez nagy hátrány.
+        </para>
+        <para> 
+          Viszont ha azt nézzük, hogy a JVM által egy adott Java kódot bármilyen rendszeren futtathatjuk nagy 
+          előnyre teszünk szert.
+          Hiszen egy blackPanther rendszeren megírt C++ programot nem biztos, hogy tudunk futtatni SUSE 
+          operációs rendszer alatt.
+        </para>
+        
+        <para>
+		A Java nyelv teljesen objektumorientált, azaz osztályokból
+		felépülő. Egy osztályt mezők és metódusok alkothatnak, az osztályok
+		pedig programokat. Nézzük is meg a legegyszerűbb Java programot.
+	</para>
+        
+        <para>
+		A Java nyelvben bevált szokás, hogy a fájlneveinket a benne
+		található osztályok nevével egyeztetjük össze, tehát a fenti
+		példaprogramot <filename>Hello.java</filename> néven mentsük el.
+	</para>
+		<programlisting language="java"><![CDATA[public class Hello 
+{
+    public static void main(String[] args) 
+        {
+            System.out.println("Hello, World!");
+        }
+}]]>
+		</programlisting>
+	
+	<para>
+		Bár a C++ nyelv is objektum-orientált, mégsem mondhatjuk, hogy a
+		szemlélete azonos lenne a Javával. Míg a
+		C++ enged változókat, függvényeket, eljárásokat létrehozni
+		osztályokon kívül is, Javában erre nincsen lehetőség. Mint tudjuk, a legtöbb C program
+		C++ program is, és ezzel már találtunk is egy kivételhalmazt. 
+	</para>
+        
+        <para>
+           <emphasis role = "strong">Osztályok:</emphasis>
+        </para>
+        <para>
+            A Java nyelvben minden típus egy osztály is egyben. A legalapvetőbb
+            osztály az <filename>Object</filename> osztály, mindenki ebből
+            örököl. Mivel a Java egy erősen típusos nyelv, a típuskonverziók
+            mindenhol jelen vannak. A nyelv minden összehasonlításnál megnézi,
+            hogy az összehasonlított elemek egy típushoz tartoznak-e, vagy
+            automatikus típuskonverzióval egy típusra konvertálhatók-e.
+        </para>
+        
+        <para>
+           <emphasis role = "strong">Kifejezések:</emphasis>
+        </para>
+        <para>
+            Már tudjuk, hogy a C/C++ nyelveknél a részkifejezések kiértékelodési sorrendjére semmilyen szabály nem
+            vonatkozik, magyarul: nincs megszabva melyik fog eloször, melyik következ ˝ ore kiértékel ˝ odni. Ez már
+            Java-ban nem így van, Java a kiértékelési sorrend balról jobbra történik. 
+        </para>
+        <para>
+           <emphasis role = "strong">Objektumok:</emphasis>
+        </para>
+        <para>
+            A Java programozási nyelv alapvető eleme az objektum. Az ilyen nyelveket objektum orientált (OO) programozási nyelveknek nevezzük. 
+            Az objektum az adott feladat szempontjából fontos, a valódi világ valamilyen elemének a rá 
+            jellemző tulajdonságai és viselkedései által modellezett eleme. 
+            Az objektumokkal kapcsolatban valamilyen feladatokat szeretnénk megoldani. 
+            A nyelv tervezésekor fontos szempont volt az, hogy az objektumok többé-kevésbé állandóak, de a hozzájuk tartozó feladatok nem, 
+            ezért az objektumok kapnak nagyobb hangsúlyt. 
+            A mai programok nagyon sok, egymással kölcsönhatásban álló elemből állnak, 
+            így nem is igazán programokról, hanem programrendszerekről beszélhetünk.    
+        </para>
+        
+        <para>
+           <emphasis role = "strong">Típuskonverziók:</emphasis>
+        </para>
+        <para>
+            Mint a C++ esetén, a Javában is van automatikus/kézi típuskonverzió, sot a Java annyira típusos nyelv, hogy
+            minden kifejezésben megvizsgálja a hatósági program, hogy a kifejezésben található típusok "összeférneke" egymással. 
+            Például jelez, ha lebegopontos típusú változót szeretnénk egészre konvertálni, ekkor ugye adtavesztés megy végbe.
+        </para>
+                
+    </section>
+    <section>
+        <title>Python</title>
+        
+        <para>
+            A Python egy általános célú programozási nyelv, amely magas szintű, dinamikus, objektumorientált 
+            és platform független. Tanulási ciklusa igen rövid, ezért hamar lehet látványos eredményeket 
+            elérni vele. A Python tulajdonképpen egy szkriptnyelv, rendkívűl sok csomagot és beépített 
+            eljárást tartalmaz, így komolyobb problémák megoldására és összetett alkalmazások készítésére 
+            is használható.
+        </para>    
+        <para>    
+            Python esetében nincs szükség fordításra minden mótosítás után. Prototípus alkalmatás 
+            készítésére a Python a legalkalmasabb, mivel egyszerű a használata, megbízható és jelentős 
+            támogatást biztosít a hibák javítására.
+        </para>
+        <para>
+            Az Univerzális programozás 135 / 137 nyelvhez tartozó kódkönyvtárak rengeteg újrahasznosítható 
+            modulokat tartalmaznak, amelyek jelentősen meggyorsítják a fejlesztést. Ilyen modulok vannak pl 
+            a fájlkezelésre, hálózatkezelésre, rendszerhívásokra, UI kialakítására, ezért tömörebb, 
+            rövidebb könyebben olvasható programkód készíthető, mint C,C++ vagy Java nyelven. 
+        </para>
+        <para>
+            Ennek okai még a következők: A magas szintű adattípusok lehetővé teszik, hogy összetett
+            kifejezéseket írjunk le rövid állításban, a kódcsoportosítás egyszerű tagolással történik 
+            és nincs szükség változó vagy argumentumdefiniálásra.
+        </para>
+        <para>    
+            A nyelv fő jellemzője, hogy behúzásalapú a szintaxisa, nincs szükség kapcsos zárójelekre vagy 
+            explicit kulcsszavakra. Egy adott blokk végét egy kisebb behúzású sor jelzi. Az utasítások a 
+            sor végéig tartanak, nincs szükség a ; használatára. Ha egy utasítás több sorban fér el, akkor 
+            a sor végére írt \ jellel lehet jelezni. Pythonban minden adatot objektumok reprezentálnak. 
+        </para>
+        <para>    
+            Az adatokon végezhető műveleteket az objektumok típusa határozza meg. Nincs szükség a változók 
+            típusának megadására, futásidőben a rendszer kitalálja a hozzárendelt típust. Az adattípusok 
+            lehetnek számok, stringek, ennesek, listák, szótárak. Az ennesek objektumok gyűjteményei 
+            vesszőbel elválasztva, típusai lehetnek eltérőek is. Ezeket zárójelek közé írjuk. A lista 
+            különböző elemek rendezett szekvenciája. A szótás kulcsokkal azonosított elemek rendezetlen 
+            halmaza. A null értéknek none a neve. Boolean típusként bármilyen változó használható.
+        </para>    
+        <para>
+            Pythonban változók alatt az egyes objektumokra mutató referenciákat értünk, maguknak a 
+            változóknak nincsenek típusai, így akár különböző típusú objektumra is mutathatnak 
+            futásidőben. Ha töröljük az utolsó hivatkozást az objektumról, akkor a garbage collector 
+            szabadítja fel. Ha egy változót globálisként akarunk kezelni, akkor elég kell írni a 
+            global kulcsszót. A különböző típusok közötti konverzió is támogatott. Szekvenciákon és 
+            szótárakon több beépített függvényt is használhatunk.
+        </para>
+    </section>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+</chapter>                
