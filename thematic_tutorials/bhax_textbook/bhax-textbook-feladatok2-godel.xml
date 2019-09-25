@@ -1,0 +1,86 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Gödel!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+        <title>I. Gengszterek</title>
+        
+        <programlisting language = "java"><![CDATA[
+       
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para> 
+        
+    </section>           
+
+    <section>
+        
+        <title>II. C++11 Custom Allocator</title>
+        
+        <programlisting language = "java"><![CDATA[
+        
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>
+            
+    </section>
+    
+    <section>
+        
+        <title>III. STL map érték szerinti rendezése</title>
+        
+        <programlisting language = "java"><![CDATA[
+        
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>  
+         
+    </section>
+    
+    <section>
+        
+        <title>IV. Alternatív Tabella rendezése</title>
+        
+        <programlisting language = "java"><![CDATA[
+        
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>  
+          
+    </section>
+    
+    <section>
+        
+        <title>V. Prolog családfa</title>
+        
+        <programlisting language = "java"><![CDATA[
+        
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>  
+         
+   </section>
+   
+   <section>
+        
+        <title>VI. GIMP Scheme hack</title>
+        
+        <programlisting language = "java"><![CDATA[
+        
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>  
+         
+   </section>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+</chapter>                

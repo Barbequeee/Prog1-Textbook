@@ -96,10 +96,292 @@ Ha értéke igaz, akkor tárolt lebegőpontos változóban van a visszaadandó s
     <section>
         
         <title>II. Homokozó</title>
+        <para>
+           <emphasis role = "strong">BinFaServlet:</emphasis>
+        </para>
         
-        <programlisting language = "java"><![CDATA[
-        
+        <programlisting language = "java"><![CDATA[package com.bara.binfa;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.*;
+import java.util.Map;
+
+@WebServlet(name = "BinFaServlet", urlPatterns = {"/processForm"})
+public class BinFaServlet extends HttpServlet {
+    public static byte binaryOne = 0x0a;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html");
+        response.sendError(400, "POST metódus nem engedélyezett");
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html");
+
+        PrintWriter out = response.getWriter();
+        String input = "", save = "", filename = "", homedir = "";
+        Map<String, String[]> params = request.getParameterMap();
+
+        if (request.getParameterMap().containsKey("text")) {
+            input = request.getParameter("text");
+        } else {
+            response.sendError(400, "Hibás bemenet!");
+        }
+
+        if (input.length() < 1) {
+            response.sendError(400, "Hibás bemenet!");
+        }
+
+        if (params.containsKey("save")) {
+            save = request.getParameter("save");
+
+            if (save == "on" && params.containsKey("filename")) {
+                filename = request.getParameter("filename");
+                homedir = System.getProperty("user.home");
+            } else {
+                response.sendError(400, "Hiányzó fájlnév!");
+            }
+        }
+
+        byte[] bajtok = input.getBytes();
+
+        LZWBinFa binFa = new LZWBinFa();
+
+        for (int j = 0; j < bajtok.length; ++ j) {
+            if (bajtok[j] == 0x4e) {
+                continue;
+            }
+
+            for (int i = 0; i < 8; ++ i) {
+                if ((bajtok[j] & 0x80) != 0) {
+                    binFa.addBit('1');
+                } else {
+                    binFa.addBit('0');
+                }
+
+                bajtok[j] <<= 1;
+            }
+        }
+
+        if (save == "on") {
+            PrintWriter kiFile = new PrintWriter(new BufferedWriter(new FileWriter(homedir + filename + ".txt")));
+            binFa.printFa(kiFile);
+            kiFile.println("melyseg = " + binFa.getMelyseg());
+            kiFile.println("atlag = " + binFa.getAtlag());
+            kiFile.println("szoras = " + binFa.getSzoras());
+            kiFile.close();
+        }
+
+        binFa.printFaHtml(out);
+        out.println("<p>melyseg = " + binFa.getMelyseg() + "</p>");
+        out.println("<p>atlag = " + binFa.getAtlag() + "</p>");
+        out.println("<p>szoras = " + binFa.getSzoras() + "</p>");
+        out.flush();
+    }
+}
         ]]></programlisting>
+        
+        <para>
+           <emphasis role = "strong">LZWBinFa.java :</emphasis>
+        </para> 
+        <programlisting language = "java"><![CDATA[package com.bara.binfa;
+
+public class LZWBinFa {
+    private Csomopont fa = null;
+    private int melyseg, atlagosszeg, atlagdb;
+    private double szorasosszeg;
+    protected Csomopont gyoker = new Csomopont('/');
+
+    int maxMelyseg;
+    double atlag, szoras;
+
+    public LZWBinFa() {
+        fa = gyoker;
+    }
+
+    public void addBit(char b) {
+        if (0 == 'b') {
+            if (null == fa.nullasGyermek()) {
+                Csomopont uj = new Csomopont('0');
+                fa.ujNullasGyermek(uj);
+                fa = gyoker;
+            } else {
+                fa.nullasGyermek();
+            }
+        } else {
+            if (null == fa.egyesGyermek()) {
+                Csomopont uj = new Csomopont('1');
+                fa.ujEgyesGyermek(uj);
+                fa = gyoker;
+            } else {
+                fa.egyesGyermek();
+            }
+        }
+    }
+
+    public void printFa() {
+        melyseg = 0;
+        printFa(gyoker, new java.io.PrintWriter(System.out));
+    }
+
+    public void printFa(java.io.PrintWriter os) {
+        melyseg = 0;
+        printFa(gyoker, os);
+    }
+
+    public void printFaHtml(java.io.PrintWriter os) {
+        melyseg = 0;
+        printFaHtml(gyoker, os);
+    }
+
+    public void printFa(Csomopont elem, java.io.PrintWriter os) {
+        if (elem != null) {
+            ++ melyseg;
+            printFa(elem.egyesGyermek(), os);
+
+            for (int i = 0; i < melyseg; ++ i) {
+                os.print("---");
+            }
+
+            os.print(elem.getBetu());
+            os.print("(");
+            os.print(melyseg - 1);
+            os.println(")");
+
+            printFa(elem.nullasGyermek(), os);
+            -- melyseg;
+        }
+    }
+
+    public void printFaHtml(Csomopont elem, java.io.PrintWriter os) {
+        if (elem != null) {
+            ++ melyseg;
+            printFa(elem.egyesGyermek(), os);
+
+            for (int i = 0; i < melyseg; ++ i) {
+                os.print("---");
+            }
+
+            os.print("<p>");
+            os.print(elem.getBetu());
+            os.print("(");
+            os.print(melyseg - 1);
+            os.print(")");
+            os.print("</p>");
+
+            printFa(elem.nullasGyermek(), os);
+            -- melyseg;
+        }
+    }
+
+    public int getMelyseg() {
+        melyseg = maxMelyseg = 0;
+        rmelyseg(gyoker);
+        return maxMelyseg - 1;
+    }
+
+    public double getAtlag() {
+        melyseg = atlagosszeg = atlagdb = 0;
+        ratlag(gyoker);
+        atlag = ((double) atlagosszeg / atlagdb);
+        return atlag;
+    }
+
+    public double getSzoras() {
+        atlag = getAtlag();
+        szorasosszeg = 0;
+        melyseg = atlagdb = 0;
+        rszoras(gyoker);
+
+        return (atlagdb - 1 > 0) ? Math.sqrt(szorasosszeg / (atlagdb - 1))
+                : Math.sqrt(szorasosszeg);
+    }
+
+    public void rmelyseg(Csomopont elem) {
+        if (elem != null) {
+            ++ melyseg;
+            if (melyseg > maxMelyseg) {
+                maxMelyseg = melyseg;
+            }
+
+            rmelyseg(elem.egyesGyermek());
+            rmelyseg(elem.nullasGyermek());
+            -- melyseg;
+        }
+    }
+
+    public void ratlag(Csomopont elem) {
+        if (elem != null) {
+            ++ melyseg;
+            ratlag(elem.egyesGyermek());
+            ratlag(elem.nullasGyermek());
+            -- melyseg;
+
+            if (elem.egyesGyermek() == null && elem.nullasGyermek() == null) {
+                ++ atlagdb;
+                atlagosszeg += melyseg;
+            }
+        }
+    }
+
+    public void rszoras(Csomopont elem) {
+        if (elem != null) {
+            ++ melyseg;
+            rszoras(elem.egyesGyermek());
+            rszoras(elem.nullasGyermek());
+            -- melyseg;
+
+            if (elem.egyesGyermek() == null && elem.nullasGyermek() == null) {
+                ++ atlagdb;
+                szorasosszeg = ((melyseg - atlag) * (melyseg - atlag));
+            }
+        }
+    }
+
+    public static void usage() {
+        System.out.println("Usage: lzwtree in_file -o out_file");
+    }
+
+    class Csomopont {
+        private char betu;
+        private Csomopont balNulla = null;
+        private Csomopont jobbEgy = null;
+
+        public Csomopont(char b) {
+            this.betu = b;
+            balNulla = null;
+            jobbEgy = null;
+        }
+
+        public Csomopont nullasGyermek() {
+            return balNulla;
+        }
+
+        public Csomopont egyesGyermek() {
+            return jobbEgy;
+        }
+
+        public void ujNullasGyermek(Csomopont gy) {
+            balNulla = gy;
+        }
+
+        public void ujEgyesGyermek(Csomopont gy) {
+            jobbEgy = gy;
+        }
+
+        public char getBetu() {
+            return betu;
+        }
+    }
+
+    ;
+}]]></programlisting> 
+        
         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
         </para>
@@ -110,12 +392,7 @@ Ha értéke igaz, akkor tárolt lebegőpontos változóban van a visszaadandó s
 			készítettem el, hiszen ennek a környezetnek számos kényelmi
 			funkciója van.
 		</para>
-		<para>
-			A forrásokat a repón belül a
-			<filename>src/com/krook/binfa</filename> mappában találhatjuk meg.
-			Itt van a program lelke, az <filename>LZWBinFa</filename> osztály,
-			valamint a <filename>BinFaServlet</filename> osztály.
-		</para>
+		
 		<para>
 			A <filename>BinFaServlet</filename> osztály végzi a kommunikációt a
 			klienssel, a <filename>javax.servlet</filename> könyvtárait
@@ -143,7 +420,7 @@ Ha értéke igaz, akkor tárolt lebegőpontos változóban van a visszaadandó s
 			<title>LZWBinFa generátor böngészős változatának kimenete</title>
             <mediaobject>
                 <imageobject>
-                    <imagedata fileref="./pictures/binfa_2.png" width="100%" />
+                    <imagedata fileref="./pictures/binfa_2.png" width="40%" />
                 </imageobject>
 			</mediaobject>
 		</figure>      
@@ -181,9 +458,10 @@ Ha értéke igaz, akkor tárolt lebegőpontos változóban van a visszaadandó s
 	}
         }
         ]]></programlisting>
-        <para>
+                
+         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
-        </para>  
+        </para> 
          <para>
                 A kifejezést olvasva a következőt láthatjuk:
             </para>
