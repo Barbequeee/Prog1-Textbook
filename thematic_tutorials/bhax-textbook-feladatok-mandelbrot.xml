@@ -1,0 +1,715 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Mandelbrot!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+    <section>
+        <title>I. A Mandelbrot halmaz</title>
+        
+        <para>
+            Megoldás forrása:                
+        </para>
+        <programlisting language = "c++"><![CDATA[
+        #include <png++/png.hpp>
+
+        #define N 500
+        #define M 500
+        #define MAXX 0.7
+        #define MINX -2.0
+        #define MAXY 1.35
+        #define MINY -1.35
+
+        void GeneratePNG( int tomb[N][M])
+        {
+          png::image< png::rgb_pixel > image(N, M);
+           for (int x = 0; x < N; x++)
+           {
+             for (int y = 0; y < M; y++)
+             {
+               image[x][y] = png::rgb_pixel(tomb[x][y], tomb[x][y], tomb[x][y]);
+             }
+           }
+          image.write("kimenet.png");
+        }
+        struct Komplex
+        {
+            double re, im;
+        };
+
+        int main()
+        {
+            int tomb[N][M];
+            int i, j, k;
+
+            double dx = (MAXX - MINX) / N;
+            double dy = (MAXY - MINY) / M;
+
+            struct Komplex C, Z, Zuj;
+
+            int iteracio;
+            for (i = 0; i < M; i++)
+            {
+                for (j = 0; j < N; j++)
+                {
+                    C.re = MINX + j * dx;
+                    C.im = MAXY - i * dy;
+
+                    Z.re = 0;
+                    Z.im = 0;
+                    iteracio = 0;
+
+                    while(Z.re * Z.re + Z.im * Z.im < 4 && iteracio++ < 255)
+                    {
+                        Zuj.re = Z.re * Z.re - Z.im * Z.im + C.re;
+                        Zuj.im = 2 * Z.re * Z.im + C.im;
+                        Z.re = Zuj.re;
+                        Z.im = Zuj.im;
+                    }
+                    tomb[i][j] = 256 - iteracio;
+                }
+            }
+            GeneratePNG(tomb);
+            return 0;
+        }]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>
+        <para>
+            Mandelbrot halmaz egy olyan komplex halmaz, amely illeszkedik a
+            <inlineequation>
+            <alt role="tex">f_c(z) = z^2 + c</alt>
+            <mathphrase/>
+            </inlineequation>
+            függvény képére, s nullától iterálva nem divergál, tehát a
+            <inlineequation>
+            <alt role="tex">f_c(0), f_c(f_c(0)), ...</alt>
+            <mathphrase/>
+            </inlineequation>
+            abszolútértekben korlátos.
+	</para>
+	<para>
+            A forrásfájlt a MAKE paranccsal fordítjuk le. Létrejön a kimenet.png, és mivel a Makefile-ban 
+            beálítottuk, hogy a forrást ne csak fordítsa, hanem futtasa is, így a képernyőnkön 
+            automatikusan meg fog jelenni a kimene.png kép.
+	</para>
+            <figure>
+                <title>A Mandelbrot halmaz a komplex síkon</title>
+                    <mediaobject>
+			<imageobject>
+                            <imagedata fileref="./pictures/kimenet.png" width="25%"/>
+			</imageobject>
+                        <textobject>
+                            <phrase>A Mandelbrot halmaz</phrase>
+			</textobject>
+                    </mediaobject>
+            </figure>
+	<para>
+            Ennek a programnak az alapját a <emphasis>png++</emphasis> C++ könyvtár adja, amely egy
+            "csomagolás" a C programozási nyelves <emphasis>libpng</emphasis> könyvtárra.
+	</para>
+	<para>
+			Itt nem használjuk a <code>std::complex</code>
+			osztályt, amit a C++ biztosít, hanem egyszerűen magunknak
+			adunk meg egy <code>Komplex</code> struktúrát, mely egyszerűen
+			tartalmaz két double változót, ami megfeleltethető a komplex számok
+			valós és elképzelhető értékeinek.
+        </para>
+        <para>
+            Lényegében a halmazra illeszkedő egyenlet végigmegy a halmazon, és az adott pixeleket beszínezi.
+        </para>
+    </section>        
+        
+    <section>
+        <title>II. A Mandelbrot halmaz a <filename>std::complex</filename> osztállyal</title>
+        <para>
+            Megoldás forrása:                
+        </para>
+        <programlisting language = "c++"><![CDATA[
+            #include <png++/png.hpp>
+            #include <complex>
+
+            const int N = 500;
+            const int M = 500;
+            const double MAXX = 0.7;
+            const double MINX = -2.0;
+            const double MAXY = 1.35;
+            const double MINY = -1.35;
+
+          void GeneratePNG(const int tomb[N][M])
+           {
+            png::image< png::rgb_pixel > image(N, M);
+            for (int x = 0; x < N; x++)
+            {
+             for (int y = 0; y < M; y++)
+             {
+               image[x][y] = png::rgb_pixel(tomb[x][y], tomb[x][y], tomb[x][y]);
+             }
+            }
+                image.write("kimenet.png");
+            }
+            int main()
+            {
+                int tomb[N][M];
+
+                double dx = ((MAXX - MINX) / N);
+                double dy = ((MAXY - MINY) / M);
+
+                std::complex<double> C, Z, Zuj;
+
+                int iteracio;
+                for (int i = 0; i < M; i++)
+                {
+                    for (int j = 0; j < N; j++)
+                    {
+                                    C = {MINX + j * dx , MAXY - i * dy};
+                        Z = 0;
+                        iteracio = 0;
+                        while(abs(Z) < 2 && iteracio++ < 255)
+                        {
+                            Zuj = Z*Z+C;
+                            Z = Zuj;
+                        }
+                        tomb[i][j] = 256 - iteracio;
+                    }
+                }
+                GeneratePNG(tomb);
+                return 0;
+            }]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>
+        <para>
+            Itt a beépített <code>std::complex</code> osztályt használjuk, ahelyett, hogy saját struktúrát 
+            írnánk a komplex számok tárolására.
+	</para>
+	<para>
+            Ha elkészítünk egy egyszerű <code>Makefile</code>t a programhoz, ugyanazt a
+            kimenetet adja, mint az előző programunk.
+	</para>
+	<para>
+            A <code language="c++">std::complex</code> osztály lehetőséget ad kényelmesebb, elegánsabb 
+            változó definiálsára.
+        </para>
+    </section>        
+                
+    <section>
+        <title>III. Biomorfok</title>
+        <para>
+        </para>
+        <para>
+            Megoldás videó: <link xlink:href="https://youtu.be/IJMbgRzY76E">https://youtu.be/IJMbgRzY76E</link>
+        </para>
+        <para>
+            Megoldás forrása: <link xlink:href="https://gitlab.com/nbatfai/bhax/tree/master/attention_raising/Biomorf">https://gitlab.com/nbatfai/bhax/tree/master/attention_raising/Biomorf</link>
+        </para>
+        <programlisting><![CDATA[
+            #include <iostream>
+            #include "png++/png.hpp"
+            #include <complex>
+
+            int
+            main ( int argc, char *argv[] )
+            {
+
+                int szelesseg = 1920;
+                int magassag = 1080;
+                int iteraciosHatar = 255;
+                double xmin = -1.9;
+                double xmax = 0.7;
+                double ymin = -1.3;
+                double ymax = 1.3;
+                double reC = .285, imC = 0;
+                double R = 10.0;
+
+                if ( argc == 12 )
+                {
+                    szelesseg = atoi ( argv[2] );
+                    magassag =  atoi ( argv[3] );
+                    iteraciosHatar =  atoi ( argv[4] );
+                    xmin = atof ( argv[5] );
+                    xmax = atof ( argv[6] );
+                    ymin = atof ( argv[7] );
+                    ymax = atof ( argv[8] );
+                    reC = atof ( argv[9] );
+                    imC = atof ( argv[10] );
+                    R = atof ( argv[11] );
+                }
+                else
+                {
+                    std::cout << "Hasznalat: ./3.1.2 fajlnev szelesseg magassag n a b c d reC imC R" << std::endl;
+                    return -1;
+                }
+                png::image < png::rgb_pixel > kep ( szelesseg, magassag );
+
+                double dx = ( xmax - xmin ) / szelesseg;
+                double dy = ( ymax - ymin ) / magassag;
+
+                std::complex<double> cc ( reC, imC );
+                std::cout << "Szamitas\n";
+
+                // j megy a sorokon
+                for ( int y = 0; y < magassag; ++y )
+                {
+                    // k megy az oszlopokon
+                    for ( int x = 0; x < szelesseg; ++x )
+                    {
+                        double reZ = xmin + x * dx;
+                        double imZ = ymax - y * dy;
+                        std::complex<double> z_n ( reZ, imZ );
+
+                        int iteracio = 0;
+                        for (int i=0; i < iteraciosHatar; ++i)
+                        {
+                            z_n = std::pow(z_n, 3) + cc;
+                            //z_n = std::pow(z_n, 2) + std::sin(z_n) + cc;
+                            if(std::real ( z_n ) > R || std::imag ( z_n ) > R)
+                            {
+                                iteracio = i;
+                                break;
+                            }
+                        }
+                        kep.set_pixel ( x, y,
+                                        png::rgb_pixel ( (iteracio*20)%255, (iteracio*40)%255, (iteracio*60)%255 ));
+                    }
+                    int szazalek = ( double ) y / ( double ) magassag * 100.0;
+                    std::cout << "\r" << szazalek << "%" << std::flush;
+                }
+                kep.write ( argv[1] );
+                std::cout << "\r" << argv[1] << " mentve." << std::endl;
+            }]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>
+        <para>
+            A biomorfok szorosan kapcsolódnak a Mandelbrot-halmazhoz. Itt
+            is a komplex számsíkon ábrázolható függvényeket nézünk meg, és ezek
+            ábrázolásának C++ megvalósításait.
+	</para>
+	<mediaobject>
+		<imageobject>
+			<imagedata fileref="./pictures/biomorf1.png" width="50%"/>
+		</imageobject>
+	</mediaobject>
+	<mediaobject>
+            <imageobject>
+		<imagedata fileref="./pictures/biomorf2.jpg" width="30%"/>
+            </imageobject>
+	</mediaobject>
+	<para>
+            A biomorfok szoros kapcsolatban vannak a Mandelbrot-halmazzal, ám itt a
+                <inlineequation>
+                    <alt role="tex">f_c(z) = z^2 + c</alt>
+                        <mathphrase/>
+                </inlineequation>
+            képletet lecseréljük másra.
+	</para>
+	<para>
+		Az egyszerűség kedvéért itt is létrehoztunk egy Makefilet, így a
+		<code>make</code> parancs kiadásával lefuttatható a programunk, feltéve
+		hogy telepítettük a png++ könyvtárat és működik a g++-unk.
+        </para>
+	<para>
+            Hogyha kiadjuk a make parancsot, úgy létrejön egy bmorf.png
+            fájlunk, amit beágyazva meg is tekinthet az olvasó.
+	</para>
+	<figure>
+            <title>A generált biomorf</title>
+		<mediaobject>
+                    <imageobject>
+			<imagedata fileref="./pictures/biomorf.png" width="30%"/>
+                    </imageobject>
+                    <textobject>
+			<phrase>A generált biomorf</phrase>
+                    </textobject>
+		</mediaobject>
+	</figure>
+	<para>
+            A formán több különbség is szembe tűnő, az előző Mandelbrot-os programunkhoz viszonyítva. 
+            Működési elve hasonló, csak más képletet kell alkalmaznunk, valamint a színezést úgy valósíjuk 
+            meg, hogy az iteráció számát maradékosan osztjuk 255-el, így kapunk egy RGB színkódot, és
+            ezt használjuk fel egy adott pixel színezésére.
+        </para>                        
+    </section>                     
+
+    <section>
+        <title>IV. A Mandelbrot halmaz CUDA megvalósítása</title>
+        <para>
+            Megoldás forrása:  
+        </para>
+        <programlisting><![CDATA[
+            // Copyright (C) 2019
+            // Norbert Batfai, batfai.norbert@inf.unideb.hu
+            // Released under GNU GPLv3
+
+            #include <png++/image.hpp>
+            #include <png++/rgb_pixel.hpp>
+            #include <sys/times.h>
+            #include <iostream>
+
+            #define SIZE 600
+            #define ITERATION_LIMIT 32000
+
+            // Vegigzongorazza a CUDA a szelesseg x magassag racsot:
+            __device__ int mandel(int k, int j)
+            {
+                // most eppen a j. sor k. oszlopaban vagyunk
+
+              float a = -2.0, b = .7, c = -1.35, d = 1.35;
+              int width = SIZE, height = SIZE, iterationLimit = ITERATION_LIMIT;
+
+              float dx = (b - a) / width;
+              float dy = (d - c) / height;
+              float reC, imC, reZ, imZ, ujreZ, ujimZ;
+              int iteration = 0;
+
+                    reC = a + k * dx;
+                    imC = d - j * dy;
+                    reZ = 0.0;
+                    imZ = 0.0;
+                    iteration = 0;
+              while (reZ * reZ + imZ * imZ < 4 && iteration < iterationLimit) {
+                            ujreZ = reZ * reZ - imZ * imZ + reC;
+                            ujimZ = 2 * reZ * imZ + imC;
+                            reZ = ujreZ;
+                            imZ = ujimZ;
+
+                            ++iteration;
+                    }
+                    return iteration;
+            }
+            __global__ void mandelkernel(int *buffer)
+            {
+                    int tj = threadIdx.x;
+                    int tk = threadIdx.y;
+
+                    int j = blockIdx.x * 10 + tj;
+                    int k = blockIdx.y * 10 + tk;
+
+                    buffer[j + k * SIZE] = mandel(j, k);
+            }
+            void cudamandel(int buffer[SIZE][SIZE])
+            {
+             int *deviceImageBuffer;
+             cudaMalloc((void **)&deviceImageBuffer, SIZE * SIZE * sizeof(int));
+
+             dim3 grid(SIZE / 10, SIZE / 10);
+             dim3 tgrid(10, 10);
+             mandelkernel <<< grid, tgrid >>> (deviceImageBuffer);
+             
+             cudaMemcpy(buffer, deviceImageBuffer, SIZE * SIZE * sizeof(int),
+             cudaMemcpyDeviceToHost);
+             cudaFree(deviceImageBuffer);
+
+            }
+            int main(int argc, char *argv[])
+            {
+                    // Merunk idot (PP 64)
+                    clock_t delta = clock();
+                    // Merunk idot (PP 66)
+                    struct tms tmsbuf1, tmsbuf2;
+                    times(&tmsbuf1);
+
+                    int buffer[SIZE][SIZE];
+                    cudamandel(buffer);
+                    png::image < png::rgb_pixel > image(SIZE, SIZE);
+
+                    for (int j = 0; j < SIZE; ++j) {
+                        //sor = j;
+                        for (int k = 0; k < SIZE; ++k) {
+                            image.set_pixel(k, j,
+                                 png::rgb_pixel(255 -
+                                               (255 * buffer[j][k]) /
+                                               ITERATION_LIMIT,
+                                               255 -
+                                               (255 * buffer[j][k]) /
+                                               ITERATION_LIMIT,
+                                               255 -
+                                               (255 * buffer[j][k]) /
+                                               ITERATION_LIMIT));
+                            }
+                    }
+             image.write("mandel.png");
+
+             times(&tmsbuf2);
+             std::cout << tmsbuf2.tms_utime - tmsbuf1.tms_utime + tmsbuf2.tms_stime -
+                    tmsbuf1.tms_stime << std::endl;
+
+             delta = clock() - delta;
+             std::cout << (float)delta / CLOCKS_PER_SEC << " sec" << std::endl;
+            }]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>
+        <para>
+            A CUDA jelen van a legtöbb
+            mai játékban, vagy streamer, videóvágó szoftverben. A teljesítménynövekedést
+            párhuzamos számítással érik el, több "magot" dolgoztatnak a videókártyán egyszerre.
+            Ezen kívül használható másra is az interfész, nem csak grafikus dolgok programozására.
+	</para>
+	<para>
+            Ez a forráskód ugyanazt az algoritmust tartalmazza, mint a korábbi feladataink.
+	</para>
+	<para>
+            A fő különbséget az adja, hogy most a CUDA API-n keresztül kell
+            dolgoznunk. Itt újdonságképpen jelennek meg a <code>__device__</code>,
+            <code>__global__</code> és hasonló jellegű szövegek.
+	</para>
+	<para>
+            A <code>__device__</code>  a magán a GPU-n futó függvények.
+            A <code>__global__</code>  az úgynevezett "kernel" rendelkezik. Ezen belül
+            igyekszünk megvalósítani a párhuzamosítást.
+            Olyanok, mint például a <code>short int a;</code> kifejezés során,
+            ahol a <code>short</code> a minősítő, az <code>int</code> a típus, az
+            <code>a</code> pedig a változó neve.
+	</para>
+	<para>
+            Hogyha fordítjuk és futtatjuk a programot, akkor láthatjuk hogy létrejön
+            a <filename>mandel.png</filename> állományunk, amely szokás szerint be
+            lesz ágyazva.
+	</para>
+            <figure>
+		<title>Mandelbrot halmaz CUDA-val</title>
+                    <mediaobject>
+			<imageobject>
+                            <imagedata fileref="./pictures/kimenet.png" width="50%"/>
+			</imageobject>
+                    </mediaobject>
+            </figure>
+		<screen>
+<![CDATA[$ make
+16
+0.159764
+$ ]]>
+		</screen>
+	<para>
+			A program kimenetéből látszik, hogy jóval gyorsabb mint a C++ és C-s verziók,
+			ahol akár fél percet is várnunk kellett egy-egy ábra elkészülésére, itt viszont
+			a másodperc törtrésze alatt elkészült a kép. Tehát a sebességnövekedés
+			jelentős.
+        </para>
+
+    </section>                     
+
+    <section>
+        <title>V. Mandelbrot nagyító és utazó C++ nyelven</title>
+        <para>
+            Építs GUI-t a Mandelbrot algoritmusra, lehessen egérrel nagyítani egy területet, illetve egy pontot
+            egérrel kiválasztva vizualizálja onnan a komplex iteréció bejárta z<subscript>n</subscript> komplex számokat!
+        </para>
+
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>
+        <para>
+            A Qt Creator nevű szoftvert kell használnunk a feladat megoldásához. Ez egy több platformon
+            átívelő keretrendszer elsősorban grafikus alkalmazások készítésére. Nagyon népszerű választás
+            a nagyobb projektek körében is, például a Qt az alapja a VLC-nek.
+            Ebben a programban is a Mandelbrot-halmaz programunkat fogjuk alapul venni, melyet egy más 
+            kontectusba fogunk beültetni.
+        </para>
+	<para>
+			<inlinemediaobject>
+				<imageobject>
+					<imagedata fileref="./pictures/mandel1.png" width="32%"/>
+				</imageobject>
+			</inlinemediaobject>
+			<inlinemediaobject>
+				<imageobject>
+					<imagedata fileref="./pictures/mandel2.png" width="32%"/>
+				</imageobject>
+			</inlinemediaobject>
+			<inlinemediaobject>
+				<imageobject>
+					<imagedata fileref="./pictures/mandel3.png" width="32%"/>
+				</imageobject>
+			</inlinemediaobject>
+        </para>
+    </section>                     
+                                                                                                                                                                            
+    <section>
+        <title>VI. Mandelbrot nagyító és utazó Java nyelven</title>
+        <para>
+            Megoldás forrása:
+        </para>
+        <programlisting><![CDATA[
+            /*
+                    Mandelb osztály. A Mandelbrot halmaz számítására
+                    valamint ábrázolására.
+            */
+
+            import javafx.scene.*;
+            import javafx.scene.paint.*;
+            import javafx.scene.canvas.*;
+            import javafx.scene.Scene;
+            import javafx.scene.control.Label;
+            import javafx.scene.layout.StackPane;
+            import javafx.stage.Stage;
+            import javafx.application.Application;
+            import javafx.scene.input.MouseEvent;
+            import javafx.event.*;
+
+            public class Mandelb extends Application {
+                    private static final int N = 500;
+                    private static final int M = 500;
+                    private static double mousex, mousey;
+
+                    @Override
+                    public void start(Stage stage) {
+                            stage.setTitle("Hello, Mandelbrot!");
+
+                            Group root = new Group();
+                            Scene s = new Scene(root, N, M, Color.BLACK);
+
+                            final Canvas canvas = new Canvas(N, M);
+                            GraphicsContext gc = canvas.getGraphicsContext2D();
+                            root.getChildren().add(canvas);
+
+                            final double MAXX = 0.7;
+                            final double MINX = -2.0;
+                            final double MAXY = 1.35;
+                            final double MINY = -1.35;
+               Mandelb m = new Mandelb();
+               m.drawMandel(gc, m.calculateMandelbrot(MAXX, MINX, MAXY, MINY));
+
+                           root.setOnMouseMoved(new EventHandler<MouseEvent>() {
+                                    @Override
+                                    public void handle(MouseEvent event) {
+                                            mousex = event.getX();
+                                            mousey = event.getY();
+                                            //System.out.printf("coordinate X: %.2f, coordinate Y: %.2f\n", mousex, mousey);
+                                    }
+                            });
+                            s.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
+                                    @Override
+                                    public void handle(MouseEvent event) {
+                                            // System.out.println("click! " + mousex + " " + mousey);
+                                            double dx = (MAXX - MINX) / N;
+                                            double dy = (MAXY - MINY) / M;
+                                            double nMAXX, nMINX, nMAXY, nMINY;
+                                            double range = 60;
+
+                                            nMINX = MINX + (mousex*dx);
+                                            nMAXX = MINX + (mousex*dx) + (range*dx);
+                                            nMINY = MAXY - (mousey*dy) - (range*dy);
+                                            nMAXY = MAXY - (mousey*dy);
+
+                                            m.drawMandel(gc, m.calculateMandelbrot(nMAXX, nMINX, nMAXY, nMINY));
+                                    }
+                            });
+                            stage.setScene(s);
+                            stage.show();
+                    }
+                    public static void main(String[] args) {
+                            launch();
+                            Mandelb m = new Mandelb();
+                    }
+                    public static void drawMandel(GraphicsContext gc, int[][] tomb) {
+                            for(int i = 0; i < tomb.length; i++) {
+                                    for(int j = 0; j < tomb[i].length; j++) {
+                                            gc.setFill(Color.rgb(tomb[i][j], tomb[i][j], tomb[i][j]));
+                                            gc.fillRect(i, j, 1, 1);
+                                    }
+                            }
+                    }
+                    public static int[][] calculateMandelbrot(double MAXX, double MINX, double MAXY, double MINY) {
+                            int[][] tomb = new int[N][M];
+                            int i, j, k;
+
+                            double dx = (MAXX - MINX) / N;
+                            double dy = (MAXY - MINY) / M;
+
+                            Komplex C = new Komplex();
+                            Komplex Z = new Komplex();
+                            Komplex Zuj = new Komplex();
+
+                            int iteracio;
+                            for(i = 0; i < M; i++) {
+                                    for(j = 0; j < N; j++) {
+                                            C.re = MINX + j * dx;
+                                            C.im = MAXY - i * dy;
+
+                                            Z.re = 0;
+                                            Z.im = 0;
+                                            iteracio = 0;
+                                            while(Z.re * Z.re + Z.im * Z.im < 4 && iteracio++ < 255)
+                                            {
+                                                    Zuj.re = Z.re * Z.re - Z.im * Z.im + C.re;
+                                                    Zuj.im = 2 * Z.re * Z.im + C.im;
+                                                    Z.re = Zuj.re;
+                                                    Z.im = Zuj.im;
+                                            }
+                                            tomb[i][j] = 256 - iteracio;
+                                    }
+                            }
+                            return tomb;
+                    }
+                    public static class Komplex {
+                            public double re, im;
+                    }
+            }]]></programlisting>
+        <para><emphasis role = "strong">RUN:</emphasis></para>
+        <programlisting><![CDATA[
+            #!/usr/bin/env bash
+            #export PATH_TO_FX=/usr/lib/jvm/java-11-openjdk/lib/
+            export PATH_TO_FX=/java/lib
+
+            java_modules="javafx.controls,javafx.graphics"
+
+            rm -f *.class
+
+            /java/bin/javac --module-path $PATH_TO_FX --add-modules=$java_modules Mandelb.java && \
+            /java/bin/java --module-path $PATH_TO_FX --add-modules=$java_modules Mandelb && \
+            rm -f *.class]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>
+        <para>
+            A feladat megoldásához az OpenJFX 11-et fogjuk használni. Ez a program hasonló a Qt-hoz. Egy keretrendszer grafikus felületek készítéséhez.
+            Kiváló útmutatást adnak ahhoz, hogy miképp és hogyan tudjuk elkezdeni a saját
+            projektünket.
+	</para>
+	<para>
+            Például egy egyszerű program, ami nem csinál mást, csak kiírja az OpenJFX és a Java
+            verzióját egy grafikus ablakban a következőképpen néz ki:
+	</para>
+		<programlisting language="java">
+                <![CDATA[import javafx.application.Application;
+                import javafx.scene.Scene;
+                import javafx.scene.control.Label;
+                import javafx.scene.layout.StackPane;
+                import javafx.stage.Stage;
+                public class HelloFX extends Application {
+                    @Override
+                    public void start(Stage stage) {
+                        String javaVersion = System.getProperty("java.version");
+                        String javafxVersion = System.getProperty("javafx.version");
+                        Label l = new Label("Hello, JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".");
+                        Scene scene = new Scene(new StackPane(l), 640, 480);
+                        stage.setScene(scene);
+                        stage.show();
+                    }
+                    public static void main(String[] args) {
+                        launch();
+                    }
+                }]]>
+		</programlisting>
+	<para>
+            A C++ és Java nyelvek között egyszerű a fordítás, néhány nyelvi sajátosságon,
+            könyvtáron, valamint a mutatókon kívül semmit sem kell változtatnunk. Esetünkben
+            a Mandelbrot-halmaz számító programunk C++ változatához képest mindössze
+            egy struct-ot kell átírni class-ra, és az utazást és a megjelenítést kell hozzá létrehozni.
+	</para>
+            <figure>
+		<title>Mandelbrot nagyító és utazó Java nyelven</title>
+                    <mediaobject>
+			<imageobject>
+                            <imagedata fileref="./pictures/java_utazo.png" />
+			</imageobject>
+                    </mediaobject>
+            </figure>
+		
+    </section>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+</chapter>                

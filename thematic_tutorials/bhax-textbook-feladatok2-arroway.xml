@@ -1,0 +1,735 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Arroway!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+        <title>I. OO szemlélet</title>
+        
+        <programlisting language = "java"><![CDATA[
+        public class PolarGenerator {
+
+	boolean nincsTarolt = true;
+	double tarolt;
+	
+	public PolarGenerator() {
+		nincsTarolt = true;
+	}
+	
+	public double kovetkezo() {
+		if(nincsTarolt) {
+			double u1, u2, v1, v2, w;
+			do {
+				u1 = Math.random();
+				u2 = Math.random();
+				
+				v1 = 2 * u1 - 1;
+				v2 = 2 * u2 - 1;
+				
+				w = v1 * v1 + v2 * v2;
+			} while(w > 1);
+			double r = Math.sqrt(-2 * Math.log(w) / w);
+			
+			tarolt = r * v2;
+			
+			nincsTarolt = !nincsTarolt;
+			return r * v1;
+		} else {
+			nincsTarolt = !nincsTarolt;
+			return tarolt;
+		}
+	}
+	
+	public static void main(String[] args) {
+		PolarGenerator pg = new PolarGenerator();
+		
+		for(int i = 0; i < 10; i++) {
+			System.out.println(pg.kovetkezo());
+		}
+	}
+        }
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para> 
+        <para>
+Az objektumorientált programozás (OOP) olyan módszert nyújt a programozók számára, 
+amely lehetővé teszi a programok bonyolultságának csökkentését, a megbízhatóság és a hatékonyság növelését.
+Objektumokból, tehát a valós világ elemeinek programozási modelljeiből építi fel a programot.
+A C++ és a Java is objektumorientált programozási nyelv.
+</para>
+<para>
+Remek OO bevezető példa lehet egy polártranszformációs normális generátor megírása C++-ban és Javaban. 
+A módosított polármódszeres algoritmus matematikai háttere a feladatmegoldás szempontjából lényegtelen, 
+fontos viszont az a tény, hogy egy számítási lépés két normális eloszlású számot állít elő, 
+tehát elég az előző lépés másik számát visszaadnunk.
+</para>
+<para>
+A C++ megoldásban használjuk a scope operátort, amely lehetővé teszi, hogy hozzáférjünk az std névtérhez.
+Ennek köszönhetően tudunk random számot visszaadni, gyököt vonni, illetve logaritmizálni.
+Kiiratásnál és sortörésnél is hasznos.
+A nincsTarolt változóval jelöljük azt, hogy páros vagy páratlan lépésben hívtuk-e meg a <function>kovetkezo()</function> függvényt. 
+Ha értéke igaz, akkor tárolt lebegőpontos változóban van a visszaadandó szám.
+</para>
+        <para>
+            A feladat feladata az, hogy rámutasson az objektum orientált
+            programozás előnyeire, amire eddig konkrétan nem tértünk ki a
+            könyvben. A program megvalósítása után azt kell látnunk, hogy
+            nekünk, programozóknak a matematikai háttérrel alig kell
+            foglalkoznunk, és mégis viszonylag komplex problémák megoldására
+            vagyunk képesek programok segítségével. A kód alább látható.
+        </para>
+        
+        <para>
+            A polártranszformációs normális generátor egy pszeudórandomszámok
+            generálására kitalált aloritmus, amelynek magas effektivitást
+            tulajdonítanak a matematikusok, hiszen nem egy, hanem kettő
+            pszeudórandom szám jön létre egy lefutás során, hanem kettő, így
+            minden páros lefutásnál elegendő az előzőleg generált számokból a
+            másodikat visszaadni.
+        </para>        
+    </section>           
+
+    <section>
+        
+        <title>II. Homokozó</title>
+        <para>
+           <emphasis role = "strong">BinFaServlet:</emphasis>
+        </para>
+        
+        <programlisting language = "java"><![CDATA[package com.bara.binfa;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.*;
+import java.util.Map;
+
+@WebServlet(name = "BinFaServlet", urlPatterns = {"/processForm"})
+public class BinFaServlet extends HttpServlet {
+    public static byte binaryOne = 0x0a;
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html");
+        response.sendError(400, "POST metódus nem engedélyezett");
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html");
+
+        PrintWriter out = response.getWriter();
+        String input = "", save = "", filename = "", homedir = "";
+        Map<String, String[]> params = request.getParameterMap();
+
+        if (request.getParameterMap().containsKey("text")) {
+            input = request.getParameter("text");
+        } else {
+            response.sendError(400, "Hibás bemenet!");
+        }
+
+        if (input.length() < 1) {
+            response.sendError(400, "Hibás bemenet!");
+        }
+
+        if (params.containsKey("save")) {
+            save = request.getParameter("save");
+
+            if (save == "on" && params.containsKey("filename")) {
+                filename = request.getParameter("filename");
+                homedir = System.getProperty("user.home");
+            } else {
+                response.sendError(400, "Hiányzó fájlnév!");
+            }
+        }
+
+        byte[] bajtok = input.getBytes();
+
+        LZWBinFa binFa = new LZWBinFa();
+
+        for (int j = 0; j < bajtok.length; ++ j) {
+            if (bajtok[j] == 0x4e) {
+                continue;
+            }
+
+            for (int i = 0; i < 8; ++ i) {
+                if ((bajtok[j] & 0x80) != 0) {
+                    binFa.addBit('1');
+                } else {
+                    binFa.addBit('0');
+                }
+
+                bajtok[j] <<= 1;
+            }
+        }
+
+        if (save == "on") {
+            PrintWriter kiFile = new PrintWriter(new BufferedWriter(new FileWriter(homedir + filename + ".txt")));
+            binFa.printFa(kiFile);
+            kiFile.println("melyseg = " + binFa.getMelyseg());
+            kiFile.println("atlag = " + binFa.getAtlag());
+            kiFile.println("szoras = " + binFa.getSzoras());
+            kiFile.close();
+        }
+
+        binFa.printFaHtml(out);
+        out.println("<p>melyseg = " + binFa.getMelyseg() + "</p>");
+        out.println("<p>atlag = " + binFa.getAtlag() + "</p>");
+        out.println("<p>szoras = " + binFa.getSzoras() + "</p>");
+        out.flush();
+    }
+}
+        ]]></programlisting>
+        
+        <para>
+           <emphasis role = "strong">LZWBinFa.java :</emphasis>
+        </para> 
+        <programlisting language = "java"><![CDATA[package com.bara.binfa;
+
+public class LZWBinFa {
+    private Csomopont fa = null;
+    private int melyseg, atlagosszeg, atlagdb;
+    private double szorasosszeg;
+    protected Csomopont gyoker = new Csomopont('/');
+
+    int maxMelyseg;
+    double atlag, szoras;
+
+    public LZWBinFa() {
+        fa = gyoker;
+    }
+
+    public void addBit(char b) {
+        if (0 == 'b') {
+            if (null == fa.nullasGyermek()) {
+                Csomopont uj = new Csomopont('0');
+                fa.ujNullasGyermek(uj);
+                fa = gyoker;
+            } else {
+                fa.nullasGyermek();
+            }
+        } else {
+            if (null == fa.egyesGyermek()) {
+                Csomopont uj = new Csomopont('1');
+                fa.ujEgyesGyermek(uj);
+                fa = gyoker;
+            } else {
+                fa.egyesGyermek();
+            }
+        }
+    }
+
+    public void printFa() {
+        melyseg = 0;
+        printFa(gyoker, new java.io.PrintWriter(System.out));
+    }
+
+    public void printFa(java.io.PrintWriter os) {
+        melyseg = 0;
+        printFa(gyoker, os);
+    }
+
+    public void printFaHtml(java.io.PrintWriter os) {
+        melyseg = 0;
+        printFaHtml(gyoker, os);
+    }
+
+    public void printFa(Csomopont elem, java.io.PrintWriter os) {
+        if (elem != null) {
+            ++ melyseg;
+            printFa(elem.egyesGyermek(), os);
+
+            for (int i = 0; i < melyseg; ++ i) {
+                os.print("---");
+            }
+
+            os.print(elem.getBetu());
+            os.print("(");
+            os.print(melyseg - 1);
+            os.println(")");
+
+            printFa(elem.nullasGyermek(), os);
+            -- melyseg;
+        }
+    }
+
+    public void printFaHtml(Csomopont elem, java.io.PrintWriter os) {
+        if (elem != null) {
+            ++ melyseg;
+            printFa(elem.egyesGyermek(), os);
+
+            for (int i = 0; i < melyseg; ++ i) {
+                os.print("---");
+            }
+
+            os.print("<p>");
+            os.print(elem.getBetu());
+            os.print("(");
+            os.print(melyseg - 1);
+            os.print(")");
+            os.print("</p>");
+
+            printFa(elem.nullasGyermek(), os);
+            -- melyseg;
+        }
+    }
+
+    public int getMelyseg() {
+        melyseg = maxMelyseg = 0;
+        rmelyseg(gyoker);
+        return maxMelyseg - 1;
+    }
+
+    public double getAtlag() {
+        melyseg = atlagosszeg = atlagdb = 0;
+        ratlag(gyoker);
+        atlag = ((double) atlagosszeg / atlagdb);
+        return atlag;
+    }
+
+    public double getSzoras() {
+        atlag = getAtlag();
+        szorasosszeg = 0;
+        melyseg = atlagdb = 0;
+        rszoras(gyoker);
+
+        return (atlagdb - 1 > 0) ? Math.sqrt(szorasosszeg / (atlagdb - 1))
+                : Math.sqrt(szorasosszeg);
+    }
+
+    public void rmelyseg(Csomopont elem) {
+        if (elem != null) {
+            ++ melyseg;
+            if (melyseg > maxMelyseg) {
+                maxMelyseg = melyseg;
+            }
+
+            rmelyseg(elem.egyesGyermek());
+            rmelyseg(elem.nullasGyermek());
+            -- melyseg;
+        }
+    }
+
+    public void ratlag(Csomopont elem) {
+        if (elem != null) {
+            ++ melyseg;
+            ratlag(elem.egyesGyermek());
+            ratlag(elem.nullasGyermek());
+            -- melyseg;
+
+            if (elem.egyesGyermek() == null && elem.nullasGyermek() == null) {
+                ++ atlagdb;
+                atlagosszeg += melyseg;
+            }
+        }
+    }
+
+    public void rszoras(Csomopont elem) {
+        if (elem != null) {
+            ++ melyseg;
+            rszoras(elem.egyesGyermek());
+            rszoras(elem.nullasGyermek());
+            -- melyseg;
+
+            if (elem.egyesGyermek() == null && elem.nullasGyermek() == null) {
+                ++ atlagdb;
+                szorasosszeg = ((melyseg - atlag) * (melyseg - atlag));
+            }
+        }
+    }
+
+    public static void usage() {
+        System.out.println("Usage: lzwtree in_file -o out_file");
+    }
+
+    class Csomopont {
+        private char betu;
+        private Csomopont balNulla = null;
+        private Csomopont jobbEgy = null;
+
+        public Csomopont(char b) {
+            this.betu = b;
+            balNulla = null;
+            jobbEgy = null;
+        }
+
+        public Csomopont nullasGyermek() {
+            return balNulla;
+        }
+
+        public Csomopont egyesGyermek() {
+            return jobbEgy;
+        }
+
+        public void ujNullasGyermek(Csomopont gy) {
+            balNulla = gy;
+        }
+
+        public void ujEgyesGyermek(Csomopont gy) {
+            jobbEgy = gy;
+        }
+
+        public char getBetu() {
+            return betu;
+        }
+    }
+
+    ;
+}]]></programlisting> 
+        
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>
+        <para>
+			Általában nem vagyok híve a fejlesztői környezeteknek, amit lehet,
+			és egyszerűbb projekt, igyekszem puszta Vim-ben írni. Ennek
+			ellenére a megoldást az IntelliJ IDEA fejlesztői környezetben
+			készítettem el, hiszen ennek a környezetnek számos kényelmi
+			funkciója van.
+		</para>
+		
+		<para>
+			A <filename>BinFaServlet</filename> osztály végzi a kommunikációt a
+			klienssel, a <filename>javax.servlet</filename> könyvtárait
+			felhasználva. Az általunk írt osztály kiterjeszti a
+			<filename>HttpServlet</filename> osztályt, valamint felülírja a
+			<filename>doPost</filename> és <filename>doGet</filename>
+			metódusokat. Utóbbiban történik a lényeges számítás. Lényegében egy
+			az egyben ki lehet másolni az előző felvonásban taglalt C++
+			programból a megfelelő I/O részeket és ide elhelyezni.
+		</para>
+		<para>
+			A <filename>LZWBinFa</filename> osztály pedig magát a bináris fát építi
+			fel a megszokott módon. A forráskód egy az egyben az előző felvonásban
+			tárgyalt C++ verzió átirata, a pointerek nélkül, melyek Javában nem léteznek.
+		</para>
+        <figure>
+            <title>LZWBinFa generátor böngészős változata</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="./pictures/binfa_1.png" width="100%" />
+				</imageobject>
+			</mediaobject>
+		</figure>
+		<figure>
+			<title>LZWBinFa generátor böngészős változatának kimenete</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="./pictures/binfa_2.png" width="40%" />
+                </imageobject>
+			</mediaobject>
+		</figure>      
+    </section>
+    
+    <section>
+        
+        <title>III. "Gagyi"</title>
+        
+        <programlisting language = "java"><![CDATA[
+        public class Gagyi {
+
+	public static void main(String[] args) {
+		
+		Integer i = 130;
+		Integer j = 130;
+		
+		if(i <= j && i >= j && i != j) {
+			System.out.println("1. Belép i = " + i + " j = " + j);
+		}	
+		
+		i = 10;
+		j = 10;
+		
+		if(i <= j && i >= j && i != j) {
+			System.out.println("2. Belép i = " + i + " j = " + j);
+		}
+		
+		i = new Integer(10);
+		j = new Integer(10);
+		
+		if(i <= j && i >= j && i != j) {
+			System.out.println("3. Belép i = " + i + " j = " + j);
+		}
+	}
+        }
+        ]]></programlisting>
+                
+         <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para> 
+         <para>
+                A kifejezést olvasva a következőt láthatjuk:
+            </para>
+            <itemizedlist>
+                <listitem><para>
+                Ha <varname>a</varname> nagyobb és egyenlő mint <varname>b</varname>
+                </para></listitem>
+                <listitem>
+                <para>
+                és <varname>a</varname> kisebb egyenlő mint <varname>b</varname>
+                </para>
+                </listitem>
+                <listitem>
+                <para>
+                és <varname>a</varname> mégsem egyenlő <varname>b</varname>
+                </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                Ha belegondolunk, hogy tudnánk-e találni két olyan számot,
+                amelyre ezek a feltételek teljesülnek, hamar azt gondolhatjuk,
+                hogy ilyen számpár nem létezik és végtelen ciklust kapunk. A
+                tapasztalat azonban ettől különböző, a fenti kóddal nem kapunk
+                végtelen ciklust.
+            </para>
+            <para>
+                A magyarázat a jelenségre, hogy a Java nyelvben az
+                <classname>Integer</classname> osztály
+                <function>equals</function> függvénye nem egyformán dolgozik a
+                <function>==</function> operátorral. Míg az operátor azt nézi,
+                hogy a jobb és bal oldalak referenciája egyenlő e, az
+                <function>equals</function> függvény az értékeket hasonlítja
+                össze, az osztály <function>valueOf</function> függvényének
+                segítségével.
+            </para>
+            <para>
+                A tapasztalat az, hogy bármilyen 128-nál kisebb értékre a program
+                megáll, bármilyen 127-nél nagyobb étrékre pedig végtelen
+                ciklusba kerül.
+            </para>
+            <para>
+            A <![CDATA["while (x <= t && t >= x && t != x)"]]> tesztkérdéstípus lényege, hogy végtelen ciklust objektum által hordozott érték, vagy objektum referenciája esetén kapunk.
+</para>
+<para>
+Az első Java tesztprogramban x egy int típusú változó, ami az 5 értéket tárolja, t pedig egy olyan változó, amiben x - 0 kerül tárolásra. 
+Ez azt jelenti, hogy mivel 0-t vontunk ki, ezért megegyezik a két változóban tárolt érték.
+Kiiratjuk a két értéket, majd beleírjuk a kódba a while ciklust.
+Futtatáskor látjuk azt, hogy végtelen ciklust indítottunk, illetve hogy mindkét alkalommal az 5 érték került ki a képernyőre.
+
+<programlisting language="Java"><![CDATA[
+$ more Gagyi.java
+public class Gagyi
+{
+    public static void main (String[]args)
+    {
+        Integer x = new Integer (5);
+        Integer t = new Integer (x - 0);
+        System.out.println (x);
+        System.out.println (t);
+        while (x <= t && x >= t && t != x);
+    }
+}
+$ javac Gagyi.java
+$ java Gagyi
+5
+5
+]]>
+</programlisting>
+</para>
+<para>
+A második tesztprogramban kijelentjük, hogy -129 lesz az az érték, ami a két változóba kerül. 
+Végtelen ciklust kapunk, ugyanis a <filename>java/lang/Integer.java</filename> forrásból megtudhatjuk, hogy az <![CDATA["if (i >= IntegerCache.low && i <= IntegerCache.high)"]]> 
+feltétel nem teljesül (i-ben -129 van), ezért új integert fog visszadobni, két különböző című objektumunk lesz.
+
+<programlisting language="Java"><![CDATA[
+$ more Gagyi2.java
+public class Gagyi2
+{
+    public static void main (String[]args)
+    {
+        Integer x = -129;
+        Integer t = -129;
+        System.out.println (x);
+        System.out.println (t);
+        while (x <= t && x >= t && t != x);
+    }
+}
+$ javac Gagyi2.java
+$ java Gagyi2
+-129
+-129
+]]>
+</programlisting>
+</para>
+<para>
+Az utolsó programban -128 a megadott érték, ami az integerCache tartomány része, tehát nem kapunk végtelen ciklust. 
+Ugyanarra a számra ugyanazt az objektumot kapjuk, tehát a két memóriacím is egyenlő lesz.
+
+<programlisting language="Java"><![CDATA[
+$ more Gagyi3.java
+public class Gagyi3
+{
+    public static void main (String[]args)
+    {
+        Integer x = -128;
+        Integer t = -128;
+        System.out.println (x);
+        System.out.println (t);
+        while (x <= t && x >= t && t != x);
+    }
+}
+$ javac Gagyi3.java
+$ java Gagyi3
+-128
+-128]]>
+</programlisting>
+        </para>    
+    </section>
+    
+    <section>
+        
+        <title>IV. Yoda</title>
+        
+        <programlisting language = "java"><![CDATA[
+        public class Yoda {
+
+	public static void main(String[] args) {
+		
+		final String str = null;
+		
+		try {
+			if(str.equals("something")) {
+				//Do something
+			}
+			System.out.println("1. Success");
+
+		} catch(Exception e) {
+			System.err.println(e.getMessage());
+		}
+
+		try {
+			if("something".equals(str)) {
+				//Do something
+			}
+			System.out.println("2. Success");
+
+		} catch(Exception e) {
+			System.err.println(e.getMessage());
+		}
+	}
+        }
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>  
+          <para>
+            Gyakran előforduló hiba, hogy értékadó utasítást írunk le az if
+            szerkezet fejében összehasonlítás helyett. A Yoda conditions
+            használata erre kínál megoldást, miszerint fordított sorrendben
+            kell megszoknunk a programozást, így ha véletlen egy = jellel
+            kevesebbet írnánk, az kiderül fordítási időben, és nem kell
+            futásidőig várni, hogy a hiba felüsse a fejét.
+        </para>
+        <para>
+            Ha az alábbi programot próbáljuk fordítani, meg is kapjuk a
+            hibánkat, ismét, fordítási időben.
+        </para>     
+    </section>
+    
+    <section>
+        
+        <title>V. Kódolás from scratch</title>
+        
+        <programlisting language = "java"><![CDATA[
+        public class PI_Szamolo {
+
+	public static void main(String[] args) {
+
+		double s1 = s_solve(1000000, 1);
+		double s4 = s_solve(1000000, 4);
+		double s5 = s_solve(1000000, 5);
+		double s6 = s_solve(1000000, 6);
+	
+		s1 = simplify(s1);
+		s4 = simplify(s4);
+		s5 = simplify(s5);
+		s6 = simplify(s6);
+		
+		double pi = 4*s1 -2*s4 - s5 -s6;
+		
+		pi = simplify(pi);
+
+		System.out.println(s1);
+		System.out.println(s4);
+		System.out.println(s5);
+		System.out.println(s6);
+		System.out.println(pi);
+		
+		String[] hexa = {"A", "B", "C", "D", "E", "F"};
+		String result = "";
+		
+		while(simplify(pi) != 0) {
+			pi = pi*16;
+			if((int)pi >= 10) {
+				result = result.concat(hexa[(int)pi - 10]);
+			} else {
+				result = result.concat(Integer.toString((int)pi));
+			}
+			pi = simplify(pi);
+		}
+		System.out.println(result);
+	}
+
+	public static double simplify(double db) {
+		if(db < 0) {
+			return db - (int)db+1;
+		} else {
+			return db - (int)db;
+		}
+	}
+	
+	public static double s_solve(double d, double num) {
+		
+		double sum = 0.0;
+		
+		for(int i = 0; i <= d; i++) {
+			sum += modulo(16, (d-i), 8*i+num) / (8*i + num);
+		}
+		
+		return sum ;
+	}
+	
+	public static double modulo(double b, double n, double k) {
+		
+		double t = 1;
+		double r = 1;
+				
+		while(t <= n) {
+			t = t * 2;
+		}
+		
+		while(true) {
+			if(n >= t) {
+				r = (b * r) % k;
+				n= n - t;
+			}
+			t = t / 2;
+			
+			if(t >= 1) {
+				r = (r*r) % k;
+			} else {
+				break;
+			}
+		}
+		return r;
+	}	
+        }
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>  
+         <para>
+            A BBP algoritmus a pí értékének, valamint <filename>n.</filename>
+            jegyeinek gyors kiszámítására született algoritmus. Az első program
+            magát a Pí szám értékét fogja kiszámítani, míg a második képes lesz
+            az n. helyiértéken álló szám hexadecimális értékének megmondására.
+         </para>
+         
+   </section>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+</chapter>                

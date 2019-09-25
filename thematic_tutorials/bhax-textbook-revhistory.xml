@@ -1,0 +1,42 @@
+<revhistory xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <revision>
+        <revnumber>0.0.1</revnumber>
+        <date>2019-02-24</date>
+        <authorinitials>barakis</authorinitials>
+        <revremark>
+            Az iniciális dokumentum szerkezetének kialakítása.
+        </revremark>
+    </revision>
+    <revision>
+        <revnumber>0.0.2</revnumber>
+        <date>2019-02-15</date>
+        <authorinitials>barakis</authorinitials>
+        <revremark>
+            A Tematikus feladatok elkészítésének kezdése.
+        </revremark>
+    </revision>    
+    <revision>
+        <revnumber>0.0.3</revnumber>
+        <date>2019-04-11</date>
+        <authorinitials>barakis</authorinitials>
+        <revremark>
+            Olvasónaplók elkészítésének kezdete.
+        </revremark>
+    </revision>
+    <revision>
+        <revnumber>0.0.4</revnumber>
+        <date>2019-04-30</date>
+        <authorinitials>barakis</authorinitials>
+        <revremark>
+            Tematikus feladatok befejezése.
+        </revremark>
+    </revision>
+    <revision>
+        <revnumber>0.0.5</revnumber>
+        <date>2019-05-08</date>
+        <authorinitials>barakis</authorinitials>
+        <revremark>
+            Aktualizálás, javítások.
+        </revremark>
+    </revision>
+</revhistory>

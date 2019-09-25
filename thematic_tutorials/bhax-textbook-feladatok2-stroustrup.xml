@@ -1,0 +1,73 @@
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0" xml:lang="hu">
+    <info>
+        <title>Helló, Stroustrup!</title>
+        <keywordset>
+            <keyword/>
+        </keywordset>
+    </info>
+
+    <section>
+        <title>I. JDK osztályok</title>
+        
+        <programlisting language = "java"><![CDATA[
+       
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para> 
+        
+    </section>           
+
+    <section>
+        
+        <title>II. Másoló-mozgató szemantika</title>
+        
+        <programlisting language = "java"><![CDATA[
+        
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>
+        
+    </section>
+    
+    <section>
+        
+        <title>III. Hibásan implementált RSA törése</title>
+        
+        <programlisting language = "java"><![CDATA[
+        
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>  
+         
+    </section>
+    
+    <section>
+        
+        <title>IV. Változó argumentumszámú ctor</title>
+        
+        <programlisting language = "java"><![CDATA[
+        
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>  
+          
+    </section>
+    
+    <section>
+        
+        <title>V. Összefoglaló</title>
+        
+        <programlisting language = "java"><![CDATA[
+        
+        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para>  
+         
+   </section>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+</chapter>                
