@@ -9,12 +9,120 @@
     <section>
         <title>I. Liskov helyettesítés sértése</title>
         
-        <programlisting language = "java"><![CDATA[
-       
-        ]]></programlisting>
+        <para>
+            Az objektumorientált programozás öt fő tervezési elve közé tartozik az ún. Liskov-helyettesítés.
+            Ha S osztály T osztály leszármazottja, akkor S szabadon behelyettesíthető minden olyan helyre (pl. változó), ahol T típust várunk.
+        </para>
+        
+        <para>
+            Tegyük fel, hogy az Allat osztály lesz a mi példánkban a T osztály.
+            Az S osztályaink (T osztály leszármazottjai) a következők: Zebra, Oroszlan.
+            Két osztály alkotja a P programot az LPS-ben. 
+        </para>
+        
+        <para>
+            A programban az Zebra már nem tud vadászni, hiába lesz a leszármazott típusoknak vadász 
+            metódusa, azt a <![CDATA[Allat& allat]]>-ra úgysem lehet hívni.
+            Ezzel tehát a Liskov-helyettesítés elvére odafigyeltünk.
+        </para>
+        <para>
+           <emphasis role = "strong">Liskovra_figyel.java :</emphasis>
+        </para>
+        
+        <programlisting language = "java"><![CDATA[public class Liskovra_figyel {
+
+	class Allat{
+
+	}
+
+	class RagadozoAllat extends Allat{
+
+		void vadaszik(){
+            
+			System.out.println( this.toString() + " ... vadaszik ... ");
+		}
+
+	}
+
+
+	class Zebra extends Allat{
+
+	}
+	
+	class Oroszlan extends RagadozoAllat{
+
+	}
+	
+	public static void main(String[] args) {
+		Liskovra_figyel liskov = new Liskovra_figyel();
+		
+		Zebra zebra = liskov.new Zebra();
+		Oroszlan oroszlan = liskov.new Oroszlan();
+		
+	//	zebra.vadaszik();
+		oroszlan.vadaszik();
+	}
+}
+]]></programlisting>
+                
+        <para>
+           <emphasis role = "strong">Liskovra_figyel.cpp :</emphasis>
+        </para>
+        
+<programlisting language = "c++"><![CDATA[#include <iostream>
+
+using namespace std;
+
+class Allat {
+		
+};
+
+class RagadozoAllat: public Allat {
+
+public:
+	void vadaszik(){
+    
+		cout << "vadaszik ..." << endl;
+	}
+
+};
+
+class Oroszlan: public RagadozoAllat {
+
+};
+
+class Zebra : public Allat {
+
+};
+
+int main ( int argc, char **argv ){
+     
+	Oroszlan oroszlan;
+	Zebra zebra;
+
+//	zebra.vadaszik();
+	oroszlan.vadaszik();
+
+	return 0;
+]]></programlisting>
+        
         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
-        </para> 
+        </para>
+        
+        <para>
+            A Liskov helyettesítési elv megköveteli, hogy minden osztály legyen
+            helyettesíthető egy gyermek osztályával anélkül, hogy a program
+            helyes működése megváltozna.
+        </para>
+        
+        <para>
+            Ebből a kódcsipetből kiindulva megkezdődhet az elv megsértése.
+            Továbbra is megmaradt a T osztály, illetve az S osztályok, viszont ezúttal nem a 
+            RagadozoAllat (S) osztályban jelenik meg a "vadászik".
+            Ezúttal tehát így a P programban is tud vadászni az állat.
+            Sérül a Liskov-helyettesítés elve, hiszen ebben a kódban a zebra vadászik, ami lehetetlenség.
+        </para>
         
     </section>           
 
@@ -22,26 +130,446 @@
         
         <title>II. Szülő-gyerek</title>
         
-        <programlisting language = "java"><![CDATA[
+        <para>
+            Demonstráljuk c++ és java osztálydefiníción keresztül, hogy az
+            ősön keresztül csak az ős üzenetei küldhetők!
+        </para>
+       
+        <para>
+           <emphasis role = "strong">Java:</emphasis>
+        </para>      
+        <programlisting language = "java"><![CDATA[public class SzuloGyerek {
+
+	class Szulo {
+		String pelda1() { return  "pelda1"; }
+		String pelda2() { return  "pelda2"; }
+		String pelda3() { return  "pelda3"; }
+	}
+	class Gyerek extends Szulo{
+		String pelda3() { return  "valami más"; }
+	}
+	
+	public static void main(String[] args) {
+		
+		SzuloGyerek szgy = new SzuloGyerek();
+		Szulo gyerek = szgy.new Gyerek();
+		
+		System.out.println("Szulo gyerek = szgy.new Gyerek();");
+		System.out.println(gyerek.pelda1());
+		System.out.println(gyerek.pelda2());
+		System.out.println(gyerek.pelda3());
+
+	}
+}]]></programlisting>
         
-        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">C++:</emphasis>
+        </para>
+        
+        <programlisting language = "c++"><![CDATA[#include <iostream>
+
+using namespace std;
+
+class Szulo {
+public:
+	string pelda1() { return "pelda1"; }
+	string pelda2() { return "pelda2"; }
+	string pelda3() { return "pelda3"; }
+};
+
+class Gyerek: public Szulo {
+public:
+	string pelda3() { return "valami más"; }
+};
+
+class Szulo_virtual {
+public:
+	string pelda1() { return "pelda1"; }
+	string pelda2() { return "pelda2"; }
+	virtual string pelda3() { return "pelda3"; }
+};
+
+class Gyerek_virtual: public Szulo_virtual {
+public:
+	string pelda3() { return "valami más"; }
+};
+
+int main(int argc, char** argv){
+
+	Szulo *szulo; 
+    Gyerek gyerek; 
+    szulo = &gyerek; 
+
+	Szulo_virtual *szulo_v; 
+    Gyerek_virtual gyerek_v; 
+    szulo_v = &gyerek_v; 
+
+	cout << "Sima" << endl << szulo->pelda1() << endl << szulo->pelda2() << endl << szulo->pelda3() << endl;
+	cout << endl << "Virtual" << endl << szulo_v->pelda1() << endl << szulo_v->pelda2() << endl << szulo_v->pelda3() << endl;
+
+	return 0;
+}]]></programlisting>
         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
         </para>
-        
+         <para>
+            A feladat azt mutatja meg, hogy nem lehetséges a szülőn keresztül
+            olyan metódust meghívnunk, amit a gyermek igen, a szülő viszont
+            nem definiált.
+        </para>
     </section>
     
     <section>
         
         <title>III. Anti OO</title>
         
-        <programlisting language = "java"><![CDATA[
+       <para>
+           <emphasis role = "strong">Java:</emphasis>
+       </para>
+    
+        <programlisting language = "java"><![CDATA[public class Anti_oo {
+
+	public static void main(String[] args) {
+
+		long start = System.currentTimeMillis();
+		
+		int d = 1000000;
+		
+		double s1 = s_solve(d, 1);
+		double s4 = s_solve(d, 4);
+		double s5 = s_solve(d, 5);
+		double s6 = s_solve(d, 6);
+	
+		s1 = simplify(s1);
+		s4 = simplify(s4);
+		s5 = simplify(s5);
+		s6 = simplify(s6);
+		
+		double pi = 4*s1 -2*s4 - s5 -s6;
+		
+		pi = simplify(pi);
+
+		System.out.println(s1);
+		System.out.println(s4);
+		System.out.println(s5);
+		System.out.println(s6);
+		System.out.println(pi);
+		
+		String[] hexa = {"A", "B", "C", "D", "E", "F"};
+		
+		while(pi != 0.0) {
+			pi = pi*16;
+			if((int)pi >= 10) {
+				System.out.print(hexa[(int)pi - 10]);
+			} else {
+				System.out.print((int)pi);
+			}
+			pi = simplify(pi);
+		}
+		
+		System.out.println("\nJava: " + (double)(System.currentTimeMillis() - start)/1000 + " sec " + d + "d mellett.");
+	}
+
+	public static double simplify(double db) {
+		if(db < 0) {
+			return db - (int)db+1;
+		} else {
+			return db - (int)db;
+		}
+	}
+	
+	public static double s_solve(double d, double num) {
+		
+		double sum = 0.0;
+		
+		for(int i = 0; i <= d; i++) {
+			sum += modulo(16, (d-i), 8*i+num) / (8*i + num);
+		}
+		
+		return sum ;
+	}
+	
+	public static double modulo(double b, double n, double k) {
+		
+		double t = 1;
+		double r = 1;
+				
+		while(t <= n) {
+			t = t * 2;
+		}
+		
+		while(true) {
+			if(n >= t) {
+				r = (b * r) % k;
+				n= n - t;
+			}
+			t = t / 2;
+			
+			if(t >= 1) {
+				r = (r*r) % k;
+			} else {
+				break;
+			}
+		}
+		return r;
+	}	
+}]]></programlisting>
         
-        ]]></programlisting>
+        <para>
+           <emphasis role = "strong">C:</emphasis>
+       </para>
+        
+        <programlisting language = "c"><![CDATA[#include<stdio.h>   
+#include<time.h>   
+
+double simplify(double db) {
+	if(db < 0) {
+		return db - (int)db+1;
+	} else {
+		return db - (int)db;
+	}
+}
+		
+double modulo(double b, double n, double k) {
+		
+	double t = 1;
+	double r = 1;
+			
+	while(t <= n) {
+		t = t * 2;
+	}
+	
+	for(;;) {
+
+		if(n >= t) {
+			r = (long int)(b * r) % (long int)k;
+			n= n - t;
+		}
+		t = t / 2;
+		
+		if(t >= 1) {
+			r = (long int)(r*r) % (long int)k;
+		} else {
+			break;
+		}
+	}
+	return r;
+}	
+
+double s_solve(double d, double num) {
+		
+	double sum = 0.0;
+	
+	for(int i = 0; i <= d; i++) {
+		sum += modulo(16, (d-i), 8*i+num) / (8*i + num);
+	}
+	
+	return sum ;
+}
+
+int main(){  
+ 
+	clock_t start, end;  
+	start = clock();   
+
+	int d = 1000000;
+		
+	double s1 = s_solve(d, 1);
+
+	double s4 = s_solve(d, 4);
+	double s5 = s_solve(d, 5);
+	double s6 = s_solve(d, 6);
+	
+	s1 = simplify(s1);
+	s4 = simplify(s4);
+	s5 = simplify(s5);
+	s6 = simplify(s6);
+		
+	double pi = 4*s1 -2*s4 - s5 -s6;
+		
+	pi = simplify(pi);
+
+	printf("%f\n", s1);
+	printf("%f\n", s4);
+	printf("%f\n", s5);
+	printf("%f\n", s6);
+	printf("%f\n", pi);
+		
+	char hexa[6];
+
+	for(int i = 0; i < 6; i++){
+		hexa[i] = 'A' + i;
+	}
+
+	
+	while(pi != 0) {
+		pi = pi*16;
+		if((int)pi >= 10) {	
+			printf("%c", hexa[(int)pi-10]);
+		} else {
+			printf("%d", (int)pi);
+		}
+		pi = simplify(pi);
+	}
+	printf("\n");
+
+
+	end = clock();   
+
+    float diff = ((float)(end - start));   
+  
+	printf("C: %.6f sec %dd mellett.\n", diff / CLOCKS_PER_SEC, d);
+ 
+    return 0;   
+}]]></programlisting>
+        
+        <para>
+           <emphasis role = "strong">C++:</emphasis>
+       </para>
+        
+        <programlisting language = "c++"><![CDATA[#include <iostream>   
+#include <time.h>   
+
+using namespace std;
+
+double simplify(double db) {
+	if(db < 0) {
+		return db - (int)db+1;
+	} else {
+		return db - (int)db;
+	}
+}
+		
+double modulo(double b, double n, double k) {
+		
+	double t = 1;
+	double r = 1;
+			
+	while(t <= n) {
+		t = t * 2;
+	}
+	
+	for(;;) {
+
+		if(n >= t) {
+			r = (long int)(b * r) % (long int)k;
+			n= n - t;
+		}
+		t = t / 2;
+		
+		if(t >= 1) {
+			r = (long int)(r*r) % (long int)k;
+		} else {
+			break;
+		}
+	}
+	return r;
+}	
+
+double s_solve(double d, double num) {
+		
+	double sum = 0.0;
+	
+	for(int i = 0; i <= d; i++) {
+		sum += modulo(16, (d-i), 8*i+num) / (8*i + num);
+	}
+	
+	return sum ;
+}
+
+int main(){  
+ 
+	clock_t start, end;  
+	start = clock();   
+
+	int d = 1000000;
+		
+	double s1 = s_solve(d, 1);
+
+	double s4 = s_solve(d, 4);
+	double s5 = s_solve(d, 5);
+	double s6 = s_solve(d, 6);
+	
+	s1 = simplify(s1);
+	s4 = simplify(s4);
+	s5 = simplify(s5);
+	s6 = simplify(s6);
+		
+	double pi = 4*s1 -2*s4 - s5 -s6;
+		
+	pi = simplify(pi);
+
+	cout << s1 << endl << s4 << endl << s5 << endl << s6 << endl;
+		
+	char hexa[6];
+
+	for(int i = 0; i < 6; i++){
+		hexa[i] = 'A' + i;
+	}
+
+	
+	while(pi != 0) {
+		pi = pi*16;
+		if((int)pi >= 10) {	
+			cout << hexa[(int)pi-10];
+		} else {
+			cout << (int)pi;
+		}
+		pi = simplify(pi);
+	}
+	cout << endl;
+
+
+	end = clock();   
+
+    float diff = ((float)(end - start));   
+  
+	cout << "C: " << diff/CLOCKS_PER_SEC << " sec " << d << "d mellett." << endl;
+
+    return 0;   
+}]]></programlisting>
+    
+
         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
-        </para>  
-         
+        </para>
+        
+        <para>
+            Az előző fejezet 'Kódolás from scratch' feladatában a BBP algoritmus Java változatának 
+            segítségével számítottuk ki a Pi hexa jegyeit.
+            Ezúttal a 0. pozíciótól számított 10^6, 10^7 és 10^8 darab jegyét határozzuk meg C, C++, 
+            C# és Java nyelveken, majd összehasonlítjuk a kapott futási időket.
+        </para>
+
+        <para>
+            Ahhoz, hogy a futási időket megkapjuk terminálban, az eredeti kódban a d értékét kell 
+            állítanunk, nyelvtől függetlenül.
+            Ha a 0. pozíciótól számított 10^6 darab jegyet szeretnénk meghatározni, akkor a for ciklusban 
+            kezdésképp a d-nek 1000000-t kell beírnunk.  
+        </para>
+        <para>
+            A teszt eredményei a következőképp alakultak;
+        </para>
+        <figure>
+            <title>PiBBP Benchmark (a kevesebb jobb)</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="./pictures/bbpbench.png" width="70%" />
+                </imageobject>
+            </mediaobject>
+        </figure>
+        <para>
+            Akit pedig a számok érdekelnek, a következő táblázatot
+            tanulmányozza;
+        </para>
+        <figure>
+            <title>PiBBP Benchmark</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="./pictures/bbptable.png" width="100%" />
+                </imageobject>
+            </mediaobject>
+        </figure>         
     </section>
     
     <section>
@@ -66,8 +594,29 @@
         ]]></programlisting>
         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
-        </para>  
-         
+        </para> 
+        
+        <para>
+            Számoltassuk ki valamelyik programunk ciklomatikus komplexitását!
+        </para>
+        <para>
+            A ciklomatikus komplexitás a forráskódot jellemző tulajdonság, azt
+            mondja meg, hogy egy adott programban hány lineárisan független út
+            található egy programban. Lefordítva, hogy hány féle képpen mehet a
+            vezérlés a program kezdetétől a végéig.
+        </para>
+        <para>
+            Ennek kiszámítását végezhetnénk kézzel, a viszonylag egyszerű
+            szabályok mentén, vagy a több tucat kiegészítő segítségével, ami
+            minden népszerű IDE-hez létezik.
+        </para> 
+        <para>
+            Gráfelméletben a ciklomatikus komplexitás a vezérlési gráfban megtalálható független utak 
+            maximális számát jelenti.
+            Két út független, ha mindkettőben létezik olyan pont vagy él, amelyik nem eleme a másik útnak.
+            Képlete: M = E - N + 2P, ahol E a gráf éleinek száma, N a gráfban lévő csúcsok száma és P 
+            az összefüggő komponensek száma.
+        </para>
    </section>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 </chapter>                
