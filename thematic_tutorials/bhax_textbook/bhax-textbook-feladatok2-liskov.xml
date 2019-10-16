@@ -212,6 +212,19 @@ int main(int argc, char** argv){
         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
         </para>
+        
+         <para> Ennek a feladatnak a megoldásához tisztázni kell az öröklődés és a polimorfizmus
+            fogalmát. Az öröklődés az, amikor egy osztályt egy már létező osztály kiterjesztésével
+            definiálunk. Ekkor a már létező osztály lesz az ős- vagy szülőosztály. Az osztály amit
+            pedig kiterjesztettünk leszármazott vagy gyermekosztálynak nevezzük. A létrejött utód
+            egy új osztály lesz, amely örökli az ős metódusait, tagváltozóit. A public, protected,
+            private kulcsszavakkal lehet megadni, hogy a gyermek melyik metódusokat, változókat
+            lássa. A public-al rendelkezőket mindenki használhatja, a protected-et csak az ős
+            leszármazottai. A private tagot csak az az osztály, amelyben létrehozták a tagot. </para>
+        <para>
+        A polimorfizmus lényege az, hogy mivel a gyermekosztály örökölt minden metódust és
+        tagváltozót így egy olyan környezetben ahol az őst lehet használni a gyermeket is.
+        </para>
          <para>
             A feladat azt mutatja meg, hogy nem lehetséges a szülőn keresztül
             olyan metódust meghívnunk, amit a gyermek igen, a szülő viszont
@@ -617,6 +630,32 @@ int main(){
             Képlete: M = E - N + 2P, ahol E a gráf éleinek száma, N a gráfban lévő csúcsok száma és P 
             az összefüggő komponensek száma.
         </para>
+        
+         <para>
+            Ezt én egy online program segítségével oldottam
+            meg, a Lizard-dal. A BBP java kódját elemzte a program. Íme:
+        </para>
+
+        <para>
+            Egyszerűen csak ki kell választanunk a forráskód nyelvét, majd beillesztenünk magát
+            a kódot.
+        </para>
+        <para>
+            A végeredményen a számok minél kissebbek annál jobb, hiszen ha túl bonyolultak
+            a függvények nehezen olvasható a program.
+        </para>
+        <para>
+            Számítása a gráfelméleten alapul. A forráskód alapján határozza meg
+            az egyes függvények ciklomantikus komplexitását. Ez a független utak számát
+            jelenti, hogy a program mennyire bonyolult vezérlési szempontból.
+            Két út akkor számít függetlennek, ha mindkettőben van olyan pont, amely
+            nem eleme a másiknak.
+        </para>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="./pictures/lizard.jpg"  width="70%"></imagedata>
+            </imageobject>
+        </mediaobject>
    </section>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 </chapter>                

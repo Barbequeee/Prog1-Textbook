@@ -5,7 +5,20 @@
             <keyword/>
         </keywordset>
     </info>
-
+    
+    <section>
+        <title>Objektumorientált programozási nyelvek típusrendszere. Típusok 
+            tagjai: mezők, (nevesített) konstansok, tulajdonságok, metódusok, 
+            események, operátorok, indexelők, konstruktorok, destruktorok, 
+            beágyazott típusok.</title>
+        
+        <para>
+           <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
+        </para> 
+        
+       
+    </section>
+    
     <section>
         <title>I. JDK osztályok</title>
         

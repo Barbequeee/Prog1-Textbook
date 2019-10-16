@@ -9,52 +9,823 @@
     <section>
         <title>I. Encoding</title>
         
-        <programlisting language = "java"><![CDATA[
-       
-        ]]></programlisting>
+        <para>
+            Fordítsuk le és futtassuk a Javat tanítok könyv MandelbrotHalmazNagyító.java forrását úgy, 
+            hogy a fájl nevekben és a forrásokban is meghagyjuk az ékezetes betűket!
+            https://www.tankonyvtar.hu/hu/tartalom/tkt/javat-tanitok-javat/adatok.html
+        </para>
+        
+        <para>
+           <emphasis role = "strong">Mandelbrot Halmaz:</emphasis>
+        </para>
+        <programlisting language = "java"><![CDATA[public class MandelbrotHalmaz extends java.awt.Frame implements Runnable {
+    protected double a, b, c, d;
+    protected int szélesség, magasság;
+    protected java.awt.image.BufferedImage kép;
+    protected int iterációsHatár = 255;
+    protected boolean számításFut = false;
+    protected int sor = 0;
+    protected static int pillanatfelvételSzámláló = 0;
+    public MandelbrotHalmaz(double a, double b, double c, double d,
+            int szélesség, int iterációsHatár) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.d = d;
+        this.szélesség = szélesség;
+        this.iterációsHatár = iterációsHatár;
+        this.magasság = (int)(szélesség * ((d-c)/(b-a)));
+        kép = new java.awt.image.BufferedImage(szélesség, magasság,
+                java.awt.image.BufferedImage.TYPE_INT_RGB);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                setVisible(false);
+                System.exit(0);
+            }
+        });
+        addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if(e.getKeyCode() == java.awt.event.KeyEvent.VK_S)
+                    pillanatfelvétel();
+                else if(e.getKeyCode() == java.awt.event.KeyEvent.VK_N) {
+                    if(számításFut == false) {
+                        MandelbrotHalmaz.this.iterációsHatár += 256;
+                        számításFut = true;
+                        new Thread(MandelbrotHalmaz.this).start();
+                    }
+                } else if(e.getKeyCode() == java.awt.event.KeyEvent.VK_M) {
+                    if(számításFut == false) {
+                        MandelbrotHalmaz.this.iterációsHatár += 10*256;
+                        számításFut = true;
+                        new Thread(MandelbrotHalmaz.this).start();
+                    }
+                }
+            }
+        });
+        setTitle("A Mandelbrot halmaz");
+        setResizable(false);
+        setSize(szélesség, magasság);
+        setVisible(true);
+        számításFut = true;
+        new Thread(this).start();
+    }
+    public void paint(java.awt.Graphics g) {
+        g.drawImage(kép, 0, 0, this);
+        if(számításFut) {
+            g.setColor(java.awt.Color.RED);
+            g.drawLine(0, sor, getWidth(), sor);
+        }
+    }
+    public void update(java.awt.Graphics g) {
+        paint(g);
+    }
+    public void pillanatfelvétel() {
+        java.awt.image.BufferedImage mentKép =
+                new java.awt.image.BufferedImage(szélesség, magasság,
+                java.awt.image.BufferedImage.TYPE_INT_RGB);
+        java.awt.Graphics g = mentKép.getGraphics();
+        g.drawImage(kép, 0, 0, this);
+        g.setColor(java.awt.Color.BLUE);
+        g.drawString("a=" + a, 10, 15);
+        g.drawString("b=" + b, 10, 30);
+        g.drawString("c=" + c, 10, 45);
+        g.drawString("d=" + d, 10, 60);
+        g.drawString("n=" + iterációsHatár, 10, 75);
+        g.dispose();
+        StringBuffer sb = new StringBuffer();
+        sb = sb.delete(0, sb.length());
+        sb.append("MandelbrotHalmaz_");
+        sb.append(++pillanatfelvételSzámláló);
+        sb.append("_");
+        sb.append(a);
+        sb.append("_");
+        sb.append(b);
+        sb.append("_");
+        sb.append(c);
+        sb.append("_");
+        sb.append(d);
+        sb.append(".png");
+        try {
+            javax.imageio.ImageIO.write(mentKép, "png",
+                    new java.io.File(sb.toString()));
+        } catch(java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void run() {
+        double dx = (b-a)/szélesség;
+        double dy = (d-c)/magasság;
+        double reC, imC, reZ, imZ, ujreZ, ujimZ;
+        int rgb;
+        int iteráció = 0;
+        for(int j=0; j<magasság; ++j) {
+            sor = j;
+            for(int k=0; k<szélesség; ++k) {
+                reC = a+k*dx;
+                imC = d-j*dy;
+                reZ = 0;
+                imZ = 0;
+                iteráció = 0;
+                while(reZ*reZ + imZ*imZ < 4 && iteráció < iterációsHatár) {
+                    ujreZ = reZ*reZ - imZ*imZ + reC;
+                    ujimZ = 2*reZ*imZ + imC;
+                    reZ = ujreZ;
+                    imZ = ujimZ;
+                    
+                    ++iteráció;
+                    
+                }
+                iteráció %= 256;
+                rgb = (255-iteráció)|
+                        ((255-iteráció) << 8) |
+                        ((255-iteráció) << 16);
+                kép.setRGB(k, j, rgb);
+            }
+            repaint();
+        }
+        számításFut = false;
+    }
+    public double getA() {
+        return a;
+    }
+    public double getB() {
+        return b;
+    }
+    public double getC() {
+        return c;
+    }
+    public double getD() {
+        return d;
+    }   
+    public int getSz() {
+        return szélesség;
+    }   
+    public int getM() {
+        return magasság;
+    }
+    public java.awt.image.BufferedImage kép() {
+        return kép;
+    }
+    public static void main(String[] args) {
+        new MandelbrotHalmaz(-2.0, .7, -1.35, 1.35, 600, 255);
+ }]]></programlisting>
+        
+        <para>
+           <emphasis role = "strong">Mandelbrot Halmaz Nagyító:</emphasis>
+        </para>
+        <programlisting language = "java"><![CDATA[public class MandelbrotHalmazNagyító extends MandelbrotHalmaz {
+    private int x, y;
+    private int mx, my;
+    public MandelbrotHalmazNagyító(double a, double b, double c, double d,
+            int szélesség, int iterációsHatár) {
+        super(a, b, c, d, szélesség, iterációsHatár);
+        setTitle("A Mandelbrot halmaz nagyításai");
+        addMouseListener(new java.awt.event.MouseAdapter() {
+           public void mousePressed(java.awt.event.MouseEvent m) {
+                x = m.getX();
+                y = m.getY();
+                if(m.getButton() == java.awt.event.MouseEvent.BUTTON1 ) {
+                    mx = 0;
+                    my = 0;
+                    repaint();
+                } else {
+                   MandelbrotIterációk iterációk =
+                            new MandelbrotIterációk(
+                            MandelbrotHalmazNagyító.this, 50);
+                    new Thread(iterációk).start();
+                }
+            }
+            public void mouseReleased(java.awt.event.MouseEvent m) {
+                if(m.getButton() == java.awt.event.MouseEvent.BUTTON1 ) {
+                    double dx = (MandelbrotHalmazNagyító.this.b
+                            - MandelbrotHalmazNagyító.this.a)
+                            /MandelbrotHalmazNagyító.this.szélesség;
+                    double dy = (MandelbrotHalmazNagyító.this.d
+                            - MandelbrotHalmazNagyító.this.c)
+                            /MandelbrotHalmazNagyító.this.magasság;
+                    new MandelbrotHalmazNagyító(
+                            MandelbrotHalmazNagyító.this.a+x*dx,
+                            MandelbrotHalmazNagyító.this.a+x*dx+mx*dx,
+                            MandelbrotHalmazNagyító.this.d-y*dy-my*dy,
+                            MandelbrotHalmazNagyító.this.d-y*dy,
+                            600,
+                            MandelbrotHalmazNagyító.this.iterációsHatár);
+                }
+            }
+        });
+        addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent m) {
+                mx = m.getX() - x;
+                my = m.getY() - y;
+                repaint();
+            }
+        });
+    }
+    public void pillanatfelvétel() {
+        java.awt.image.BufferedImage mentKép =
+                new java.awt.image.BufferedImage(szélesség, magasság,
+                java.awt.image.BufferedImage.TYPE_INT_RGB);
+        java.awt.Graphics g = mentKép.getGraphics();
+        g.drawImage(kép, 0, 0, this);
+        g.setColor(java.awt.Color.BLACK);
+        g.drawString("a=" + a, 10, 15);
+        g.drawString("b=" + b, 10, 30);
+        g.drawString("c=" + c, 10, 45);
+        g.drawString("d=" + d, 10, 60);
+        g.drawString("n=" + iterációsHatár, 10, 75);
+        if(számításFut) {
+            g.setColor(java.awt.Color.RED);
+            g.drawLine(0, sor, getWidth(), sor);
+        }
+        g.setColor(java.awt.Color.GREEN);
+        g.drawRect(x, y, mx, my);
+        g.dispose();
+        StringBuffer sb = new StringBuffer();
+        sb = sb.delete(0, sb.length());
+        sb.append("MandelbrotHalmazNagyitas_");
+        sb.append(++pillanatfelvételSzámláló);
+        sb.append("_");
+        sb.append(a);
+        sb.append("_");
+        sb.append(b);
+        sb.append("_");
+        sb.append(c);
+        sb.append("_");
+        sb.append(d);
+        sb.append(".png");
+       try {
+            javax.imageio.ImageIO.write(mentKép, "png",
+                    new java.io.File(sb.toString()));
+        } catch(java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void paint(java.awt.Graphics g) {
+        g.drawImage(kép, 0, 0, this);
+       if(számításFut) {
+            g.setColor(java.awt.Color.RED);
+            g.drawLine(0, sor, getWidth(), sor);
+        }
+        g.setColor(java.awt.Color.GREEN);
+        g.drawRect(x, y, mx, my);
+    }
+    public int getX() {
+        return x;
+    }
+    public int getY() {
+        return y;
+    }
+    public static void main(String[] args) {
+       new MandelbrotHalmazNagyító(-2.0, .7, -1.35, 1.35, 600, 255);
+    }
+}]]></programlisting>
+        
+        
+        <para>
+           <emphasis role = "strong">Mandelbrot Iterációk :</emphasis>
+        </para>
+        <programlisting language = "java"><![CDATA[public class MandelbrotIterációk implements Runnable{
+    private int várakozás;
+    private MandelbrotHalmazNagyító nagyító;
+    private int j, k;
+    private double a, b, c, d;
+    private  int szélesség, magasság;
+    private java.awt.image.BufferedImage kép;
+    public MandelbrotIterációk(MandelbrotHalmazNagyító nagyító, int várakozás) {        
+        this.nagyító = nagyító;
+        this.várakozás = várakozás;
+        j = nagyító.getY();
+        k = nagyító.getX();
+        a = nagyító.getA();
+        b = nagyító.getB();
+        c = nagyító.getC();
+        d = nagyító.getD();
+        kép = nagyító.kép();
+        szélesség  = nagyító.getSz();
+        magasság = nagyító.getM();
+    }
+    public void run() {
+        double dx = (b-a)/szélesség;
+        double dy = (d-c)/magasság;
+        double reC, imC, reZ, imZ, ujreZ, ujimZ;
+        int iteráció = 0;
+        reC = a+k*dx;
+        imC = d-j*dy;
+        reZ = 0;
+        imZ = 0;
+        iteráció = 0;
+        while(reZ*reZ + imZ*imZ < 4 && iteráció < 255) {
+            ujreZ = reZ*reZ - imZ*imZ + reC;
+            ujimZ = 2*reZ*imZ + imC;
+            java.awt.Graphics g = kép.getGraphics();
+            g.setColor(java.awt.Color.WHITE);
+            g.drawLine(
+                    (int)((reZ - a)/dx),
+                    (int)((d - imZ)/dy),
+                    (int)((ujreZ - a)/dx),
+                    (int)((d - ujimZ)/dy)
+                    );
+            g.dispose();
+            nagyító.repaint();
+            reZ = ujreZ;
+            imZ = ujimZ;
+            ++iteráció;
+            try {
+                Thread.sleep(várakozás);
+            } catch (InterruptedException e) {}
+        }
+    }    
+} ]]></programlisting>
         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
         </para> 
-        
+            <para>
+            A forrásokat célszerű zip-ben letölteni, majd kicsomagolni.
+            A keresett fájl, a <filename>MandelbrotHalmazNagyító.java</filename>
+            az alábbi útvonalon lesz a kicsomagolt zip-ben:
+            <filename>javat-tanitok-javat/forrasok/javat_tanitok_forrasok/nehany_egyeb_pelda</filename>.
+        </para>
+        <para>
+            A következő akadály, hogy ezek a fájlok <filename>latin1</filename>
+            kódolással vannak kódolva, ezt a következő parancs kiadásával
+            hozhatjuk helyre, feltéve, hogy a megfelelő könyvtárban vagyunk.
+        </para>
+        <screen><![CDATA[$ mkdir utf
+$ find . -type f -exec iconv -f latin1 -t utf-8 "{}" -o utf/"{}" \;]]>
+        </screen>
+        <para>
+            Ezután az utf mappában a fájlneveket kézzel kell helyrehoznunk:
+            <filename>MandelbrotHalmazNagy?t?.java</filename> ->
+            <filename>MandelbrotHalmazNagyító.java</filename>.
+        </para>
+        <screen><![CDATA[$ javac MandelbrotHalmazNagyító.java
+$ java MandelbrotHalmazNagyító]]>
+        </screen>
+        <para>
+            És ezzel kész is vagyunk. A következő látvány tárul elénk:
+        </para>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="./pictures/encoding1.png"  width="100%"></imagedata>
+            </imageobject>
+        </mediaobject>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="./pictures/encoding2.png"  width="100%"></imagedata>
+            </imageobject>
+        </mediaobject>
+        <mediaobject>
+            <imageobject>
+                <imagedata fileref="./pictures/encoding3.png"  width="100%"></imagedata>
+            </imageobject>
+        </mediaobject>
     </section>           
 
     <section>
         
         <title>II. OOCWC lexer</title>
         
-        <programlisting language = "java"><![CDATA[
-        
-        ]]></programlisting>
+        <para>
+            A korábbi részben már taglaltuk, hogy mi is az a lexer. A lexer feladata, hogy tokenizálja a bemeneteket, és
+            ez alapján elemezzük azt. Természetesen ezt le lehetne programozni saját magunknak is, de mivel létezik a 
+            Lex, ezért erre nincs szükség. A Lex egy program, amely lexikális elemzőt generál. Beolvassa a bemenetet, és 
+            elkészíti a lexikális elemzőt, majd pedig legenerálja a C++ forrást. 
+        </para>
         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
         </para>
-             
+        
+        <para>
+                Az alap struktúra a következő:
+                <programlisting><![CDATA[
+                    {definíciók}
+                    %%
+                    {szabályok}
+                    %%
+                    {felhasználói utasítások} 
+                    ]]>
+                </programlisting>
+            </para>
+            <para>
+            Ez alapján nézzük végig a <filename>carlexer.ll</filename>
+            <programlisting><![CDATA[
+                %option c++
+                %option noyywrap
+            ]]></programlisting>
+            A forrás elsőrésze azt adja meg, hogy c++ forrást szeretnénk generálni, 
+            és nincs szükségünk az <function>yywrap()</function> függvényre. Az 
+            <function>yywrap()</function> feladata az lenne, hogy amikor az <function>yylex()</function>
+            végére ér a bemenetnek, akkor meghívja, és ha 1-et ad vissza, akkor nincs már
+            több bemenet, 0 esetén pedig tovább olvassa a bemenetet amire az <function>yyin</function>
+            mutat. Mivel a <function>yywarp()</function> függvény definícióját nem adja meg
+            a Lex program a kimeneti C++ fájlban, ezt a programozónak kell elkészítenie.
+            <programlisting><![CDATA[
+                %{
+                    #define YY_DECL int justine::robocar::CarLexer::yylex()
+                    #include "carlexer.hpp"
+                    #include <cstdio>
+                    #include <limits>
+                %}
+            ]]></programlisting>
+            Az opciók megadása után inclúdálhatjuk a szükséges header állomámnyokat,
+            deklarálhatjuk a szükséges változókat, vagy macro-kat hozhatunk létre.
+            <programlisting><![CDATA[
+                INIT	"<init"
+                INITG	"<init guided"
+                WS	[ \t]*
+                WORD	[^-:\n \t()]{2,}
+                INT	[0123456789]+
+                FLOAT	[-.0123456789]+
+                ROUTE	"<route"
+                CAR	"<car"
+                POS	"<pos"
+                GANGSTERS	"<gangsters"
+                STAT	"<stat"
+                DISP	"<disp>"
+            ]]></programlisting>
+            A következő lépés az egyes lexer-hez szükséges változók megadása. Lényegében megadunk
+            egy nevet és ehhez hoozákapcsolunk egy stringet, így után a nevet tudjuk használni a 
+            szabályok meghatározása során. Tehát, ahogy látható, az <function>INIT</function> esetén 
+            a <![CDATA["<init"]]> sztnget olvasunk be. A <function>WS</function> a whitespace-t jelenti,
+            és azért van ott a csillag, mert bármennyi lehet belőle, akár 0 is. A <function>WORD</function>
+            egy kicsit érdekesebb reguláris kifejezés. Ez olyan bemeneteket jelent, amik nem
+            <![CDATA[-,:,\n, \t,(,)]]> karakterekből állnak, és legalább 2 elemből. A többi 
+            pedig értelemszerű, szóval azokra most nem térünk ki külön.
+            <programlisting><![CDATA[
+            %% 
+            {DISP}					{
+                                m_cmd = 0;
+                                }
+            {POS}{WS}{INT}{WS}{INT}{WS}{INT}	{
+                                std::sscanf(yytext, "<pos %d %u %u", &m_id, &from, &to);
+                                m_cmd = 10001;
+                                }
+            {CAR}{WS}{INT}				{
+                                std::sscanf(yytext, "<car %d", &m_id);
+                                m_cmd = 1001;
+                                }
+            {STAT}{WS}{INT}				{
+                                std::sscanf(yytext, "<stat %d", &m_id);
+                                m_cmd = 1003;
+                                }
+            {GANGSTERS}{WS}{INT}			{
+                                std::sscanf(yytext, "<gangsters %d", &m_id);
+                                m_cmd = 1002;
+                                }
+            {ROUTE}{WS}{INT}{WS}{INT}({WS}{INT})*	{
+                            int size{0};
+                            int ss{0};
+                            int sn{0};				  
+                            
+                            std::sscanf(yytext, "<route %d %d%n", &size, &m_id, &sn);
+                            ss += sn;
+                            for(int i{0}; i<size; ++i)
+                            {
+                                unsigned int u{0u};
+                                std::sscanf(yytext+ss, "%u%n", &u, &sn);
+                                route.push_back(u);
+                                ss += sn; 				    
+                            }
+                            m_cmd = 101;
+                            }
+            {INIT}{WS}{WORD}{WS}("c"|"g")	{
+                            std::sscanf(yytext, "<init %s %c>", name, &role);
+                            num = 1;
+                            m_cmd = 0;
+                            }
+            {INIT}{WS}{WORD}{WS}{INT}{WS}("c"|"g")	{
+                            std::sscanf(yytext, "<init %s %d %c>", name, &num, &role);
+                            if(num >200)
+                            {
+                                m_errnumber = 1;
+                                num = 200;
+                            }
+                            m_cmd = 1;
+                            }				
+            {INITG}{WS}{WORD}{WS}("c"|"g")	{
+                            std::sscanf(yytext, "<init guided %s %c>", name, &role);
+                            num = 1;
+                            m_guided = true;
+                            m_cmd = 3;
+                            }
+            {INITG}{WS}{WORD}{WS}{INT}{WS}("c"|"g")	{				  
+                            std::sscanf(yytext, "<init guided %s %d %c>", name, &num, &role);
+                            if(num >200)
+                            {
+                                m_errnumber = 1;
+                                num = 200;
+                            }
+                            m_guided = true;
+                            m_cmd = 2;
+                            }								
+            .				{;}
+            %%
+            ]]></programlisting>
+            A szabályok részben pedig megadjuk, hogy az egyes bemenetek szerint mi legyen az egyes változók
+            értéke. Ehhez a <function>sscanf</function>-et használjuk, aminek az első paramétere a bemenet, 
+            majd annak a formátuma, és végül az egyes változók, amikbe "beleírjuk" az értékeket.
+            <programlisting>
+                int yyFlexLexer::yylex(){return -1;}
+            </programlisting>
+            Végezetül definiáljuk az <function>yylex()</function> függvényt. Ebből a <filename>carlexer.ll</filename>
+            fájlból pedig a <function>lex</function> parancs legenerálja a forrást.
+        </para>
+        <para>
+            <emphasis role="strong">C++ forrás generálása</emphasis>
+            <programlisting>
+                lex carlexer.ll
+            </programlisting>
+        </para>    
     </section>
     
     <section>
         
         <title>III. Paszigráfia Rapszódia OpenGL full screen vizualizáció</title>
         
-        <programlisting language = "java"><![CDATA[
-        
-        ]]></programlisting>
+        <para>
+            A Paszigráfia Rapszódia OpenGL program a PaRa nyelvet vizualizálja
+            térben, OpenGL segítségével. A programot futtathatjuk az általam
+            mellékelt Makefile segítségével, ha leklónoztuk a repót és
+            beléptünk a <filename>para/docs/OpenGL</filename> mappába.
+        </para>
         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
         </para>  
-         
+        
+        <para>
+            Az általam elvégzett módosítások a következőek:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Nord színséma implementációja az eredeti helyett
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    VIM-billentyűk (hjkl) támogatása a WASD mellett
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>
+            A színek módósításához keressük meg az összes
+            <function>glColor3f</function> hívást a programban. Ezt megtehetjük
+            mondjuk a <filename>grep</filename> nevű programmal.
+        </para>
+        <screen><![CDATA[$ cat para12.cpp | grep glColor3f | tr -d ' '
+$ grep glColor3f para12.cpp | tr -d ' '
+glColor3f(0.818f,.900f,0.824f);
+glColor3f(0.818f,.900f,0.824f);
+glColor3f(0.818f,.900f,0.824f);
+glColor3f(0.818f,.900f,0.824f);
+glColor3f(0.818f,.900f,0.824f);
+glColor3f(0.818f,.900f,0.824f);
+glColor3f(.188f,0.209f,0.190f);
+glColor3f(.82f,.15f,.15f);
+glColor3f(.188f,0.209f,0.190f);
+glColor3f(0.15f,.29f,.82f);
+glColor3f(.188f,0.209f,0.190f);
+glColor3f(.309f,.820f,.150f);
+glColor3f(.188f,0.209f,0.190f);
+glColor3f(.804f,.820f,.150f);
+glColor3f(.188f,0.209f,0.190f);
+glColor3f(.614f,0.150f,0.820f);
+glColor3f(.188f,0.209f,0.190f);
+glColor3f(.114f,.108f,.156f);
+glColor3f(.9,.9,.4);
+glColor3f(.7,.8,.3);
+glColor3f(.7,.5,.3);
+glColor3f(.3,.3,.2+f*.1);
+        ]]>
+        </screen>
+        <para>
+            Itt láthatjuk, hogy milyen színeket használ a program. Én először
+            összegyűjtöttem az egyforma színeket, majd
+            <emphasis role="strong">nevesített konstans</emphasis>okká változtattam őket:
+        </para>
+        <programlisting language="c++">
+<![CDATA[
+#define COLOR_LINE      0.188f, 0.209f, 0.190f
+#define COLOR_BLACK     0.114f, 0.108f, 0.156f
+#define COLOR_BLUE      0.15f,  0.29f,  0.82f
+#define COLOR_BLUE_L    0.818f, 0.900f, 0.824f
+#define COLOR_YELLOW    0.70f,  0.80f,  0.30f
+#define COLOR_YELLOW_D  0.70f,  0.50f,  0.30f
+#define COLOR_RED       0.82f,  0.15f,  0.15f
+#define COLOR_GREEN     0.309f, 0.820f, 0.150f
+#define COLOR_BROWN     0.804f, 0.820f, 0.150f
+#define COLOR_BROWN_L   0.90f,  0.90f,  0.40f
+#define COLOR_PURPLE    0.61f,  0.15f,  0.82f
+]]>
+        </programlisting>
+        <para>
+            Ezek a színek RGB% formátumban vannak tárolva, azaz az első
+            komponensük a vörös (0.0-1.0), majd a zöld és végül a kék aránya.
+        </para>
+        <para>
+            Ezután fogtam a Nord színséma színeit, kicseréltem a definícióban
+            lévő színeket, majd futtattam a programot. A végeredmény
+            a következő volt:
+        </para>
+        <figure>
+            <title>Paszigráfia Rapszódia OpenGL</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="./pictures/pasigl.png" width="100%" />
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            Az irányítás módósításához pedig tanulmányozzuk a <function>void
+            keyboard()</function> eljárást.
+        </para>
+        <programlisting language="C++">
+<![CDATA[
+void keyboard ( unsigned char key, int keyx, int keyy )
+{
+        if ( key == '0' ) {
+                selectedCube=0;
+        } else if ( key == '1' ) {
+                selectedCube=1;
+        } else if ( key == '2' ) {
+                selectedCube=2;
+        } else if ( key == '3' ) {
+                selectedCube=3;
+        } else if ( key == '4' ) {
+                selectedCube=4;
+        } else if ( key == '5' ) {
+                selectedCube=5;
+        } else if ( key == '6' ) {
+                selectedCube=6;
+        } else if ( key == 't' ) {
+                transp = !transp;
+        } else if ( key == 'p' ) {
+                pic = !pic;
+        } else if ( key == 'm' ) {
+                mousec = !mousec;
+        } else if ( key == 'o' ) {
+                mousefc = !mousefc;
+        } else if ( key == 'f' ) {
+                fullscr = !fullscr;
+                if ( fullscr )
+                        glutFullScreen();
+                else {
+                        glutReshapeWindow ( width, height );
+                        glutPositionWindow ( 0,0 );
+                }
+        } else if ( key == 'w' || key == 'k' ) {
+                w();
+        } else if ( key == 's' || key == 'j' ) {
+                s();
+        } else if ( key == 'a' || key == 'h' ) {
+                a+=2.0f;
+        } else if ( key == 'd' || key == 'l' ) {
+                a-=2.0f;
+        } else if ( key == 'q' || key == 'J' ) {
+                yy-=1.0f;
+                y-=1.0f;
+        } else if ( key == 'e' || key == 'K' ) {
+                yy+=1.0f;
+                y+=1.0f;
+        } else if ( key == 'r' ) {
+                start();
+                glMatrixMode ( GL_PROJECTION );
+                glLoadIdentity();
+                gluPerspective ( fovy, ( float ) width / ( float ) height, .1f, 1000.0f );
+                glMatrixMode ( GL_MODELVIEW );
+        } else if ( key == '-' ) {
+                ++fovy;
+                glMatrixMode ( GL_PROJECTION );
+                glLoadIdentity();
+                gluPerspective ( fovy, ( float ) width / ( float ) height, .1f, 1000.0f );
+                glMatrixMode ( GL_MODELVIEW );
+        } else if ( key == '+' ) {
+                --fovy;
+                glMatrixMode ( GL_PROJECTION );
+                glLoadIdentity();
+                gluPerspective ( fovy, ( float ) width / ( float ) height, .1f, 1000.0f );
+                glMatrixMode ( GL_MODELVIEW );
+        } else if ( key == 27 ) {
+                glutDestroyWindow ( wid );
+        }
+        if ( glutGetWindow() )
+                glutPostRedisplay();
+}
+]]>
+        </programlisting>
+        <para>
+            Láthatjuk, hogy az irányítás módosítása is egyszerű feladat;
+            egy-egy if ág tartozik a billentyűkhöz. Ahhoz, hogy a VIM
+            billentyűit (hjkl) engedélyezzük, csak annyit kellett tegyünk,
+            hogy hozzápárosítottuk őket a WASD gombok megfelelőjéhez.
+        </para>
     </section>
     
     <section>
         
         <title>IV. Paszigráfia Rapszódia LuaLaTeX vizualizáció</title>
         
-        <programlisting language = "java"><![CDATA[
-        
-        ]]></programlisting>
+        <para>
+            A LaTeX-es dokumentumok fordításához érdemes telepítenünk a
+            <filename>latexmk</filename> csomagot. A frissebb verziók már
+            támogatjuk a <filename>-lualatex</filename> kapcsolót is, ami most
+            a hasznunkra fog válni. További hasznos funkció, hogy a
+        </para>
+        <screen><![CDATA[$ latexmk -c]]></screen>
         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
         </para>  
-          
+        
+        <para>
+            parancs kiadásával fájdalommentesen "megtisztíthatjuk" a jelenlegi
+            könyvtárunkat a <filename>*.aux, *.log</filename>, stb. fájloktól.
+        </para>
+        <para>
+            A fejlesztésre rátérve, a legegyszerűbb, ha az egész paszigráfia
+            rapszódia repót forkoljuk, majd klónozzuk. Ezt a következő
+            parancs kiadásával tehetjük meg:
+        </para>
+        <screen><![CDATA[$ git clone git@gitlab.com:nbatfai/pasigraphy-rhapsody.git]]></screen>
+        <para>
+            A projektet a legegyszerűbben a következőképp fordíthatjuk le,
+            feltéve, hogy minden csomagunk telepítve van. Amennyiben nincs,
+            járjunk utána, hogy bizonyos CTAN csomagokat a csomagkezelőnk
+            melyik csomaga tartalmaz.
+        </para>
+        <screen><![CDATA[$ latexmk -pdflatex=lualatex -pdf -interaction=nonstopmode]]></screen>
+        <para>
+            Fontos, hogy a fenti parancs a jelenlegi mappában található
+            összes <filename>.tex</filename> kiterjesztésű fájlt lefordít,
+            amennyiben csak egyet szeretnénk lefordítani, úgy nevezzük meg
+            azt az egyet a parancs végén.
+        </para>
+        <para>
+            A feladatra térve, a <filename>vis_prel_para.tex</filename> fájlban
+            láhatjuk, hogy a 3D ábrák rajzolásáért a következő sor felel:
+        </para>
+        <screen><![CDATA[\newcommand\prelparaIIID[2]{\directlua{para3D(#1,#2)}}]]></screen>
+        <para>
+            A prelparaIIID parancsot a TikZ környezeteken belül hívjuk meg,
+            viszont a logikai része LUA-ban van megírva. Tehát a módosításokat
+            a <filename>prelpara.lua</filename> fájlban kell eszközölnünk.
+            A fájlon belül pedig a <function>para3D</function> függvényt
+            kell módósítanunk.
+        </para>
+        <para>
+            A függvény a következő színeket használja:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    gray
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    black
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    orange
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    cyan
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    yellow
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    pink
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>
+            Ezeket a színeket fogjuk kicserélni, a pár feladattal előtti Nord
+            színséma színeire. Ehhez viszont új színeket kell definiálnunk a
+            <filename>tex</filename> fájlban.
+            Ezen kívül a jobb 3D hatás érdekében némi árnyékokat is bevetünk,
+            ez megnöveli a fordításra szánt időt, viszont véleményem szerint
+            sokkal jobban néznek ki így az ábrák.
+        </para>
+        <para>
+            Az eredmény valami hasonló:
+        </para>
+        <figure>
+            <title>Új rapszódia paszigráfia megjelenés és Új rapszódia paszigráfia borító</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="./pictures/newpass.png" width="100%" />
+                </imageobject>
+            </mediaobject>
+        </figure> 
     </section>
     
     <section>
@@ -67,7 +838,300 @@
         <para>
            <emphasis role = "strong">Tanulságok, tapasztalatok, magyarázat:</emphasis>
         </para>  
-         
+          <para>
+            Korábbi részben már taglaltuk, hogy mi is az a perceptron. A Perceptron arra szolgál, hogy kétfelé válassza a 
+            bemneteket, emiatt Lineáris Bináris Osztályozónak is szokták nevezni. Egy perceptron részei a bemenetek és a hozzájuk 
+            tartozó súlyok, az összegző csomópont, az aktivációs függvény és a kimenet.
+            <figure>
+                <title>Perceptron felépítése</title>
+                    <mediaobject>
+                        <imageobject>
+                            <imagedata fileref="./pictures/perceptron.png" width="70%" />
+                        </imageobject>
+                    </mediaobject>
+            </figure>
+            Ezt a implementálja a <function>Perceptron</function> soztályunk, ami az <filename>ml.hpp</filename>-ben található.
+            <programlisting><![CDATA[
+    class Perceptron
+    {
+    public:
+        Perceptron ( int nof, ... )
+        {
+            n_layers = nof;
+            
+            units = new double*[n_layers];
+            n_units = new int[n_layers];
+            
+            va_list vap;
+            
+            va_start ( vap, nof );
+            
+            for ( int i {0}; i < n_layers; ++i )
+            {
+                n_units[i] = va_arg ( vap, int );
+                
+                if ( i )
+                    units[i] = new double [n_units[i]];
+            }
+            
+            va_end ( vap );
+            
+            weights = new double**[n_layers-1];
+            
+            #ifndef RND_DEBUG
+            std::random_device init;
+            std::default_random_engine gen {init() };
+            #else
+            std::default_random_engine gen;
+            #endif
+            
+            std::uniform_real_distribution<double> dist ( -1.0, 1.0 );
+            
+            for ( int i {1}; i < n_layers; ++i )
+            {
+                weights[i-1] = new double *[n_units[i]];
+                
+                for ( int j {0}; j < n_units[i]; ++j )
+                {
+                    weights[i-1][j] = new double [n_units[i-1]];
+                    
+                    for ( int k {0}; k < n_units[i-1]; ++k )
+                    {
+                        weights[i-1][j][k] = dist ( gen );
+                    }
+                }
+            }
+        }
+        
+        Perceptron ( std::fstream & file )
+        {
+            file >> n_layers;
+            
+            units = new double*[n_layers];
+            n_units = new int[n_layers];
+            
+            for ( int i {0}; i < n_layers; ++i )
+            {
+                file >> n_units[i];
+                
+                if ( i )
+                    units[i] = new double [n_units[i]];
+            }
+            
+            weights = new double**[n_layers-1];
+            
+            for ( int i {1}; i < n_layers; ++i )
+            {
+                weights[i-1] = new double *[n_units[i]];
+                
+                for ( int j {0}; j < n_units[i]; ++j )
+                {
+                    weights[i-1][j] = new double [n_units[i-1]];
+                    
+                    for ( int k {0}; k < n_units[i-1]; ++k )
+                    {
+                        file >> weights[i-1][j][k];
+                    }
+                }
+            }
+        }
+        
+        
+        double sigmoid ( double x )
+        {
+            return 1.0/ ( 1.0 + exp ( -x ) );
+        }
+        
+        
+        double operator() ( double image [] )
+        {
+            
+            units[0] = image;
+            
+            for ( int i {1}; i < n_layers; ++i )
+            {
+                
+                #ifdef CUDA_PRCPS
+                
+                cuda_layer ( i, n_units, units, weights );
+                
+                #else
+                
+                #pragma omp parallel for
+                for ( int j = 0; j < n_units[i]; ++j )
+                {
+                    units[i][j] = 0.0;
+                    
+                    for ( int k = 0; k < n_units[i-1]; ++k )
+                    {
+                        units[i][j] += weights[i-1][j][k] * units[i-1][k];
+                    }
+                    
+                    units[i][j] = sigmoid ( units[i][j] );
+                    
+                }
+                
+                #endif
+                
+            }
+            
+            return sigmoid ( units[n_layers - 1][0] );
+            
+        }
+        
+        void learning ( double image [], double q, double prev_q )
+        {
+            double y[1] {q};
+            
+            learning ( image, y );
+        }
+        
+        void learning ( double image [], double y[] )
+        {
+            //( *this ) ( image );
+            
+            units[0] = image;
+            
+            double ** backs = new double*[n_layers-1];
+            
+            for ( int i {0}; i < n_layers-1; ++i )
+            {
+                backs[i] = new double [n_units[i+1]];
+            }
+            
+            int i {n_layers-1};
+            
+            for ( int j {0}; j < n_units[i]; ++j )
+            {
+                backs[i-1][j] = sigmoid ( units[i][j] ) * ( 1.0-sigmoid ( units[i][j] ) ) * ( y[j] - units[i][j] );
+                
+                for ( int k {0}; k < n_units[i-1]; ++k )
+                {
+                    weights[i-1][j][k] += ( 0.2* backs[i-1][j] *units[i-1][k] );
+                }
+                
+            }
+            
+            for ( int i {n_layers-2}; i >0 ; --i )
+            {
+                
+                #pragma omp parallel for
+                for ( int j =0; j < n_units[i]; ++j )
+                {
+                    
+                    double sum = 0.0;
+                    
+                    for ( int l = 0; l < n_units[i+1]; ++l )
+                    {
+                        sum += 0.19*weights[i][l][j]*backs[i][l];
+                    }
+                    
+                    backs[i-1][j] = sigmoid ( units[i][j] ) * ( 1.0-sigmoid ( units[i][j] ) ) * sum;
+                    
+                    for ( int k = 0; k < n_units[i-1]; ++k )
+                    {
+                        weights[i-1][j][k] += ( 0.19* backs[i-1][j] *units[i-1][k] );
+                    }
+                }
+            }
+            
+            for ( int i {0}; i < n_layers-1; ++i )
+            {
+                delete [] backs[i];
+            }
+            
+            delete [] backs;
+            
+        }
+        
+        ~Perceptron()
+        {
+            for ( int i {1}; i < n_layers; ++i )
+            {
+                for ( int j {0}; j < n_units[i]; ++j )
+                {
+                    delete [] weights[i-1][j];
+                }
+                
+                delete [] weights[i-1];
+            }
+            
+            delete [] weights;
+            
+            for ( int i {0}; i < n_layers; ++i )
+            {
+                if ( i )
+                    delete [] units[i];
+            }
+            
+            delete [] units;
+            delete [] n_units;
+            
+        }
+        
+        void save ( std::fstream & out )
+        {
+            out << " "
+            << n_layers;
+            
+            for ( int i {0}; i < n_layers; ++i )
+                out << " " << n_units[i];
+                
+                for ( int i {1}; i < n_layers; ++i )
+                {
+                    for ( int j {0}; j < n_units[i]; ++j )
+                    {
+                        for ( int k {0}; k < n_units[i-1]; ++k )
+                        {
+                            out << " "
+                            << weights[i-1][j][k];
+                            
+                        }
+                    }
+                }
+                
+        }
+        
+    private:
+        Perceptron ( const Perceptron & );
+        Perceptron & operator= ( const Perceptron & );
+        
+        int n_layers;
+        int* n_units;
+        double **units;
+        double ***weights;
+        
+    };
+            ]]></programlisting>
+            A régi programot fogjuk egy kicsit módosítani, természetesen a <function>Perceptron</function> osztály érintetlen marad.
+            Korábban csak egy számot kaptunk végeredményül, most lesz egy képi kimenetünk is. 
+            A módosítás a következő:
+            <programlisting language="c++"><![CDATA[
+                srand(time(nullptr));
+                for(int i = 0; i < png_image.get_width(); ++i)
+                    for(int j = 0; j<png_image.get_height(); ++j){
+                        png_image[i][j].green = rand()%256;//newPNG[j*png_image.get_height()+j];
+                    }
+                png_image.write("output.png");            
+            ]]></programlisting>
+            A lényeg, hogy vesszük a beolvasott képet, és annak az egyes pixeleinek a zöld elemét változtatjuk random.
+            De rengeteg féleképpen lehet ezt megoldani, változtathatjuk a pixel kék és piros komponenseit is, vagy azt is
+            lehet, hogy csak elvonunk színeket az egyes pixelektől, azaz kinullázzuk.
+            <programlisting language="c++"><![CDATA[
+                double* newPNG = new double[size];
+            
+                for(int i = 0; i < png_image.get_width(); ++i)
+                    for(int j = 0; j<png_image.get_height(); ++j){
+                        png_image[i][j].green = newPNG[j*png_image.get_height()+j];
+                    }
+                png_image.write("output.png");
+            ]]></programlisting>
+            Lényegében ebben az esetben van egy tömbünk csupa nullából, és ebből kiválasztjuk az adott elemet, amivel kinullázzuk az R,G,B valamelyikét.
+            De az látható, hogy nem is lenne feltétlen szükség tömbre. Ha ki szeretnénk nullázni, akkor elég ez is:
+            <programlisting language="c++">
+                png_image[i][j].green = 0;
+            </programlisting>
+        </para>
    </section>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 </chapter>                
